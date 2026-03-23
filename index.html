@@ -353,25 +353,17 @@
 
   // redirect to login if not logged in and visiting first time
   // (only redirect if they haven't been to homepage before - use a flag)
-  // If not logged in: only redirect to login on very first ever visit
-  // Use localStorage (not sessionStorage) so it persists across tabs/sessions
   if (!session) {
-    if (!localStorage.getItem('kc_visited')) {
-      localStorage.setItem('kc_visited', '1');
-      window.location.replace('login.html');
-      return;
-    }
     area.innerHTML = `<a href="login.html" class="nav-login-btn">Login</a>`;
     const ml = document.getElementById('mob-login-li');
     const ma = document.getElementById('mob-account-li');
     if(ml) ml.style.display='block';
     if(ma) ma.style.display='none';
   } else {
-    localStorage.setItem('kc_visited', '1');
     const name = session.username || session.name;
     area.innerHTML = `
       <a href="account.html" class="nav-user-name" title="My Account">👤 ${name}</a>
-      <button class="nav-logout-btn" onclick="KC.clearSession();window.location.href='login.html'">Logout</button>
+      <button class="nav-logout-btn" onclick="KC.clearSession();location.reload()">Logout</button>
     `;
     const ml = document.getElementById('mob-login-li');
     const ma = document.getElementById('mob-account-li');

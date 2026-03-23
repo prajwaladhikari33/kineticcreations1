@@ -183,6 +183,7 @@ body.auth-loading{visibility:hidden;}
     <button class="sb-btn" onclick="showPanel('contact',this);closeSidebar()"><span class="icon">📞</span>Contact Info</button>
     <button class="sb-btn" onclick="showPanel('clients',this);closeSidebar()"><span class="icon">🏢</span>Our Clients</button>
     <div class="sb-section">Settings</div>
+    <button class="sb-btn" onclick="showPanel('datamanager',this);closeSidebar()"><span class="icon">💾</span>Export / Import</button>
     <button class="sb-btn" onclick="showPanel('credentials',this);closeSidebar()"><span class="icon">🔑</span>Change Credentials</button>
   </nav>
   <div class="sb-bottom">
@@ -240,7 +241,15 @@ body.auth-loading{visibility:hidden;}
           <div class="fg"><label>Role / Position *</label><input type="text" id="m-role" placeholder="Lead Designer"></div>
         </div>
         <div class="fg"><label>Skills (comma separated)</label><input type="text" id="m-skills" placeholder="Photoshop, Illustrator, Logo Design"></div>
-        <div class="fg"><label>Photo URL</label><input type="url" id="m-photo" placeholder="https://... or images/about/photo.jpg"></div>
+        <div class="fg">
+          <label>Member Photo</label>
+          <input type="url" id="m-photo" placeholder="https://... or images/about/photo.jpg" style="margin-bottom:8px;">
+          <label style="display:inline-flex;align-items:center;gap:8px;font-size:.78rem;color:var(--blue);cursor:pointer;padding:7px 14px;border:1.5px dashed var(--border);border-radius:8px;transition:border-color .2s;font-weight:600;" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Upload Photo from Device
+            <input type="file" id="m-photo-file" accept="image/*" style="display:none" onchange="handleMemberPhoto(this,'m-photo')">
+          </label>
+        </div>
         <button class="btn-main" onclick="addMember()">Add Member</button>
         <div id="m-msg" class="msg-inline"></div>
       </div>
@@ -253,7 +262,15 @@ body.auth-loading{visibility:hidden;}
           <div class="fg"><label>Role</label><input type="text" id="em-role" placeholder="Role"></div>
         </div>
         <div class="fg"><label>Skills (comma separated)</label><input type="text" id="em-skills" placeholder="Photoshop, ..."></div>
-        <div class="fg"><label>Photo URL</label><input type="url" id="em-photo" placeholder="https://..."></div>
+        <div class="fg">
+          <label>Member Photo</label>
+          <input type="url" id="em-photo" placeholder="https://... or images/about/photo.jpg" style="margin-bottom:8px;">
+          <label style="display:inline-flex;align-items:center;gap:8px;font-size:.78rem;color:var(--blue);cursor:pointer;padding:7px 14px;border:1.5px dashed var(--border);border-radius:8px;transition:border-color .2s;font-weight:600;" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Upload Photo from Device
+            <input type="file" id="em-photo-file" accept="image/*" style="display:none" onchange="handleMemberPhoto(this,'em-photo')">
+          </label>
+        </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
           <button class="btn-main" onclick="saveMemberEdit()">Save Changes</button>
           <button onclick="document.getElementById('edit-member-card').style.display='none'" style="padding:9px 18px;border:1.5px solid var(--border);border-radius:9px;background:transparent;font-family:'Poppins',sans-serif;cursor:pointer;font-size:.86rem;">Cancel</button>
@@ -328,6 +345,35 @@ body.auth-loading{visibility:hidden;}
     </div>
 
 
+    <!-- DATA MANAGER -->
+    <div id="panel-datamanager" class="panel">
+      <div class="section-hdr"><div class="section-title">Export / Import Site Data</div></div>
+
+      <div style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:12px;padding:16px 20px;margin-bottom:18px;font-size:.82rem;color:#1e40af;line-height:1.7;">
+        💡 <strong>Why do I need this?</strong><br>
+        All site data (clients, members, designs) is stored in your browser's local storage — so it only exists on the device you added it from. Use <strong>Export</strong> on this device and <strong>Import</strong> on any other device (laptop, another phone) to sync everything.
+      </div>
+
+      <div class="form-card">
+        <h3>📤 Export All Data</h3>
+        <p style="font-size:.82rem;color:var(--muted);margin-bottom:14px;">Click below to download all your site data (clients, members, designs, contact info) as a JSON file. Share this file to any device.</p>
+        <button class="btn-main" onclick="exportData()">Download Data File</button>
+        <div id="export-msg" class="msg-inline"></div>
+      </div>
+
+      <div class="form-card">
+        <h3>📥 Import Data</h3>
+        <p style="font-size:.82rem;color:var(--muted);margin-bottom:14px;">Upload the exported JSON file to restore all data on this device. <strong style="color:var(--red)">Warning: this will replace all existing data on this device.</strong></p>
+        <label style="display:flex;align-items:center;gap:10px;font-size:.85rem;font-weight:600;cursor:pointer;padding:11px 18px;border:1.5px dashed var(--border);border-radius:9px;width:fit-content;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Choose JSON File
+          <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(this)">
+        </label>
+        <div id="import-msg" class="msg-inline" style="margin-top:10px;"></div>
+      </div>
+    </div>
+
+
     <!-- CREDENTIALS -->
     <div id="panel-credentials" class="panel">
       <div class="section-hdr"><div class="section-title">Change Admin & Designer Credentials</div></div>
@@ -377,7 +423,7 @@ function showPanel(name, btn) {
   document.querySelectorAll('.sb-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
   if(btn) btn.classList.add('active');
-  const T={overview:'Overview',users:'Registered Users',designs:'Manage Designs',members:'Team Members',contact:'Contact Info',clients:'Our Clients',credentials:'Change Credentials'};
+  const T={overview:'Overview',users:'Registered Users',designs:'Manage Designs',members:'Team Members',contact:'Contact Info',clients:'Our Clients',datamanager:'Export / Import Data',credentials:'Change Credentials'};
   document.getElementById('topbar-title').textContent=T[name];
   if(name==='overview') renderOverview();
   if(name==='users')    renderUsers();
@@ -463,6 +509,18 @@ function renderMembers(){
       </div>
     </div>`).join('');
 }
+function handleMemberPhoto(input, targetId) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    // Put base64 data URL into the photo URL input field
+    document.getElementById(targetId).value = e.target.result;
+    showMsg('m-msg', 'Photo loaded! Click "Add Member" to save.', 'ok');
+  };
+  reader.readAsDataURL(file);
+}
+
 function addMember(){
   const name=document.getElementById('m-name').value.trim();
   const role=document.getElementById('m-role').value.trim();
@@ -546,6 +604,53 @@ function showMsg(id,text,type){
   const el=document.getElementById(id);
   el.textContent=text;el.className='msg-inline show '+(type==='ok'?'ok':'err');
   setTimeout(()=>el.className='msg-inline',3500);
+}
+
+
+// ── EXPORT / IMPORT DATA ─────────────────────────────────────────────────
+function exportData() {
+  const data = {
+    kc_clients:      KC.getClients(),
+    kc_clients_showname: KC.getClientsShowName(),
+    kc_members:      KC.getMembers(),
+    kc_designs:      KC.getDesigns(),
+    kc_contact:      KC.getContact(),
+    exported_at:     new Date().toISOString(),
+    version:         '1.0'
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'kinetic_data_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showMsg('export-msg', 'Data exported! Share this file to other devices and import it there.', 'ok');
+}
+
+function importData(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.version) { showMsg('import-msg', 'Invalid file format.', 'err'); return; }
+      if (!confirm('This will replace all current data on this device. Are you sure?')) return;
+      if (data.kc_clients)           KC.saveClients(data.kc_clients);
+      if (data.kc_clients_showname !== undefined) KC.setClientsShowName(data.kc_clients_showname);
+      if (data.kc_members)           KC.saveMembers(data.kc_members);
+      if (data.kc_designs)           KC.saveDesigns(data.kc_designs);
+      if (data.kc_contact)           KC.saveContact(data.kc_contact);
+      showMsg('import-msg', '✅ Data imported successfully! All clients, members and designs are now synced on this device.', 'ok');
+      // Refresh current panels
+      renderOverview();
+      input.value = '';
+    } catch(err) {
+      showMsg('import-msg', 'Error reading file. Make sure it is a valid exported JSON file.', 'err');
+    }
+  };
+  reader.readAsText(file);
 }
 
 // ── CLIENTS ──────────────────────────────────────────────────────────────

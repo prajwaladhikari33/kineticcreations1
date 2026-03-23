@@ -267,7 +267,7 @@ function togglePw(id,btn){
 }
 
 function showMsg(id,text,type){const el=document.getElementById(id);el.textContent=text;el.className='msg show '+type;setTimeout(()=>el.className='msg',3500);}
-function doLogout(){KC.clearSession();localStorage.removeItem('kc_visited');window.location.href='login.html';}
+function doLogout(){KC.clearSession();window.location.href='login.html';}
 
 // mobile nav
 function toggleMob(){
