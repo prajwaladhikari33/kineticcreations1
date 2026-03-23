@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login — Kinetic Creations</title>
+<link rel="icon" href="images/logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- EmailJS -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#1a3cc8;--blue-dark:#1230a0;--blue-light:#e8eeff;
+  --red:#e8231a;--red-dark:#c01a12;
+  --bg:#f0f2fa;--white:#fff;--text:#0d1333;--muted:#6b7280;
+  --border:#d1d5e8;--shadow:0 4px 24px rgba(26,60,200,.10);
+}
+/* Suppress browser built-in password eye icon */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear,
+input[type="password"]::-webkit-contacts-auto-fill-button,
+input[type="password"]::-webkit-credentials-auto-fill-button { display:none !important; visibility:hidden !important; pointer-events:none !important; }
+input[type="password"] { -webkit-appearance:none; }
+body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;}
+.bg-deco{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
+.bg-deco::before{content:'';position:absolute;top:-120px;right:-120px;width:400px;height:400px;background:radial-gradient(circle,rgba(26,60,200,.12),transparent 70%);}
+.bg-deco::after{content:'';position:absolute;bottom:-100px;left:-100px;width:350px;height:350px;background:radial-gradient(circle,rgba(232,35,26,.10),transparent 70%);}
+.logo-bar{display:flex;align-items:center;gap:10px;margin-bottom:24px;text-decoration:none;z-index:1;}
+.logo-bar img{width:44px;}
+.logo-bar .brand{font-weight:800;font-size:1.1rem;color:var(--blue);}
+.logo-bar .tagline{font-size:.7rem;color:var(--muted);}
+.card{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:32px 28px;width:100%;max-width:440px;position:relative;z-index:1;box-shadow:var(--shadow);}
+.tabs{display:flex;gap:0;background:var(--bg);border-radius:12px;padding:4px;margin-bottom:24px;}
+.tab-btn{flex:1;padding:9px 8px;border:none;background:transparent;color:var(--muted);font-family:'Poppins',sans-serif;font-size:.85rem;font-weight:500;cursor:pointer;border-radius:9px;transition:all .2s;}
+.tab-btn.active{background:var(--blue);color:#fff;font-weight:700;box-shadow:0 2px 8px rgba(26,60,200,.3);}
+.panel{display:none;} .panel.active{display:block;}
+.fg{margin-bottom:15px;}
+.fg label{display:block;font-size:.78rem;font-weight:600;color:var(--text);margin-bottom:6px;}
+.pw-wrap{position:relative;}
+.pw-wrap input{padding-right:42px !important;}
+.pw-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);display:flex;align-items:center;padding:0;transition:color .2s;}
+.pw-eye:hover{color:var(--blue);}
+.pw-eye svg{width:18px;height:18px;}
+.fg input{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:11px 13px;color:var(--text);font-family:'Poppins',sans-serif;font-size:.9rem;outline:none;transition:border .2s;}
+.fg input:focus{border-color:var(--blue);background:#fff;}
+.fg input::placeholder{color:#b0b8c8;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.btn-main{width:100%;padding:12px;background:var(--blue);border:none;border-radius:10px;color:#fff;font-family:'Poppins',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;transition:background .2s,transform .15s;margin-top:4px;}
+.btn-main:hover{background:var(--blue-dark);transform:translateY(-1px);}
+.btn-main.red{background:var(--red);}
+.btn-main.red:hover{background:var(--red-dark);}
+.btn-main:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+.msg{font-size:.8rem;margin-top:10px;padding:9px 13px;border-radius:8px;display:none;}
+.msg.show{display:block;}
+.msg.ok{background:#eefaf3;color:#15803d;border:1px solid #86efac;}
+.msg.err{background:#fff1f0;color:#dc2626;border:1px solid #fca5a5;}
+.msg.info{background:#eff6ff;color:var(--blue);border:1px solid #bfdbfe;}
+.otp-row{display:flex;gap:8px;}
+.otp-row input{flex:1;}
+.resend-btn{flex-shrink:0;padding:11px 12px;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;color:var(--blue);font-size:.76rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .2s;}
+.resend-btn:hover:not(:disabled){border-color:var(--blue);}
+.resend-btn:disabled{color:var(--muted);cursor:not-allowed;}
+.otp-note{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:9px 12px;font-size:.77rem;color:var(--blue);margin-top:7px;line-height:1.5;}
+.otp-note.demo{background:#fef9ec;border-color:#fde68a;color:#92400e;}
+.fp-step{display:none;} .fp-step.active{display:block;}
+.back-link{display:inline-flex;align-items:center;gap:5px;font-size:.78rem;color:var(--muted);cursor:pointer;margin-bottom:14px;transition:color .2s;background:none;border:none;font-family:'Poppins',sans-serif;padding:0;}
+.back-link:hover{color:var(--blue);}
+.account-link{text-align:center;font-size:.8rem;color:var(--muted);margin-top:14px;}
+.account-link a{color:var(--blue);font-weight:600;cursor:pointer;}
+.account-link a:hover{text-decoration:underline;}
+.forgot-link{font-size:.78rem;color:var(--blue);cursor:pointer;font-weight:500;background:none;border:none;font-family:'Poppins',sans-serif;padding:0;float:right;margin-bottom:12px;}
+.forgot-link:hover{text-decoration:underline;}
+@media(max-width:460px){.card{padding:24px 16px;}.row2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="bg-deco"></div>
+<a href="index.html" class="logo-bar">
+  <img src="images/logo.png" alt="Kinetic Creations">
+  <div><div class="brand">Kinetic Creations</div><div class="tagline">Design Studio · Nepal</div></div>
+</a>
+
+<div class="card">
+  <div class="tabs">
+    <button class="tab-btn active" id="tab-login"  onclick="switchTab('login')">Login</button>
+    <button class="tab-btn"        id="tab-signup" onclick="switchTab('signup')">Sign Up</button>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="panel-login" class="panel active">
+    <div id="lf-main">
+      <div class="fg">
+        <label>Username or Email</label>
+        <input type="text" id="l-ident" placeholder="username or email@example.com" autocomplete="username">
+      </div>
+      <div class="fg">
+        <label>Password</label>
+        <div class="pw-wrap">
+          <input type="password" id="l-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+          <button class="pw-eye" type="button" onclick="togglePw('l-pass',this)" title="Show/hide password">
+            <svg id="l-pass-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <button class="forgot-link" onclick="showFP()">Forgot password?</button>
+      <div style="clear:both;"></div>
+      <button class="btn-main" onclick="doLogin()">Login</button>
+      <div id="l-msg" class="msg"></div>
+      <p class="account-link">Don't have an account? <a onclick="switchTab('signup')">Sign Up</a></p>
+    </div>
+
+    <!-- Forgot Password inline -->
+    <div id="lf-fp" style="display:none;">
+      <button class="back-link" onclick="hideFP()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        Back to Login
+      </button>
+
+      <div id="fp-s1" class="fp-step active">
+        <div class="fg"><label>Registered Email</label><input type="email" id="fp-email" placeholder="your@gmail.com"></div>
+        <button class="btn-main" id="fp-send-btn" onclick="fpSendOTP()">Send OTP to Email</button>
+        <div id="fp-m1" class="msg"></div>
+      </div>
+
+      <div id="fp-s2" class="fp-step">
+        <div class="fg">
+          <label>Enter 6-digit OTP</label>
+          <div class="otp-row">
+            <input type="text" id="fp-otp" placeholder="123456" maxlength="6" inputmode="numeric">
+            <button class="resend-btn" id="fp-resend" onclick="fpResend()">Resend</button>
+          </div>
+        </div>
+        <div id="fp-otp-note" class="otp-note"></div>
+        <button class="btn-main" style="margin-top:12px;" onclick="fpVerify()">Verify OTP</button>
+        <div id="fp-m2" class="msg"></div>
+      </div>
+
+      <div id="fp-s3" class="fp-step">
+        <div class="fg">
+          <label>New Password</label>
+          <div class="pw-wrap">
+            <input type="password" id="fp-np" placeholder="Min 6 characters">
+            <button class="pw-eye" type="button" onclick="togglePw('fp-np',this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="fg">
+          <label>Confirm New Password</label>
+          <div class="pw-wrap">
+            <input type="password" id="fp-cp" placeholder="Repeat password">
+            <button class="pw-eye" type="button" onclick="togglePw('fp-cp',this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+        <button class="btn-main" onclick="fpReset()">Reset Password</button>
+        <div id="fp-m3" class="msg"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIGNUP -->
+  <div id="panel-signup" class="panel">
+    <div class="row2">
+      <div class="fg"><label>First Name *</label><input type="text" id="s-fn" placeholder="Arjun"></div>
+      <div class="fg"><label>Last Name</label><input type="text" id="s-ln" placeholder="Karki"></div>
+    </div>
+    <div class="fg"><label>Username *</label><input type="text" id="s-un" placeholder="arjun_karki" autocomplete="username"></div>
+    <div class="fg"><label>Email *</label><input type="email" id="s-em" placeholder="arjun@gmail.com"></div>
+    <div class="fg"><label>Phone (optional)</label><input type="tel" id="s-ph" placeholder="+977 98XXXXXXXX"></div>
+    <div class="fg">
+      <label>Password *</label>
+      <div class="pw-wrap">
+        <input type="password" id="s-pw" placeholder="Min 6 characters" autocomplete="new-password">
+        <button class="pw-eye" type="button" onclick="togglePw('s-pw',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="fg">
+      <label>Confirm Password *</label>
+      <div class="pw-wrap">
+        <input type="password" id="s-cpw" placeholder="Repeat password" onkeydown="if(event.key==='Enter')doSignup()">
+        <button class="pw-eye" type="button" onclick="togglePw('s-cpw',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+    <button class="btn-main red" onclick="doSignup()">Create Account</button>
+    <div id="s-msg" class="msg"></div>
+    <p class="account-link">Already have an account? <a onclick="switchTab('login')">Login</a></p>
+  </div>
+</div>
+
+<script src="db.js"></script>
+<script>
+// ══════════════════════════════════════════════════════
+//  EMAILJS CONFIGURATION
+//  Follow EMAILJS_SETUP.md to get your 3 keys
+// ══════════════════════════════════════════════════════
+const EMAILJS_PUBLIC_KEY  = 'Y0DcX7hiO_uttQmmP';    // Step 4 of setup guide
+const EMAILJS_SERVICE_ID  = 'service_kinetic';    // Step 2 of setup guide
+const EMAILJS_TEMPLATE_ID = 'template_gqppmjo';   // Step 3 of setup guide
+// ══════════════════════════════════════════════════════
+
+const EMAIL_CONFIGURED = (
+  EMAILJS_PUBLIC_KEY  !== 'YOUR_PUBLIC_KEY' &&
+  EMAILJS_SERVICE_ID  !== 'YOUR_SERVICE_ID' &&
+  EMAILJS_TEMPLATE_ID !== 'YOUR_TEMPLATE_ID'
+);
+
+if (EMAIL_CONFIGURED) {
+  emailjs.init(EMAILJS_PUBLIC_KEY);
+  console.log('✅ EmailJS configured — OTPs will be sent to Gmail');
+} else {
+  console.warn('⚠️ EmailJS not configured — OTPs shown on screen (demo mode). See EMAILJS_SETUP.md');
+}
+
+// ── Already logged in? Skip login page entirely ──────────
+(function(){
+  const s = KC.getSession();
+  if (!s) return;
+  if (s.role === 'admin')    { window.location.replace('admin.html');    return; }
+  if (s.role === 'designer') { window.location.replace('designer.html'); return; }
+  window.location.replace('index.html');
+})();
+
+let fpEmail = '', fpTimer = null;
+
+// ── Tab switch ───────────────────────────────────────────
+function switchTab(t) {
+  ['login','signup'].forEach(x => {
+    document.getElementById('tab-'+x).classList.toggle('active', x===t);
+    document.getElementById('panel-'+x).classList.toggle('active', x===t);
+  });
+  if (t==='login') hideFP();
+}
+
+function showMsg(id, text, type) {
+  const el = document.getElementById(id);
+  el.textContent = text; el.className = 'msg show ' + type;
+}
+
+// ── Password eye toggle ──────────────────────────────────
+function togglePw(inputId, btn) {
+  const inp = document.getElementById(inputId);
+  const show = inp.type === 'password';
+  inp.type = show ? 'text' : 'password';
+  btn.querySelector('svg').innerHTML = show
+    ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>'
+    : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+}
+
+// ── Login ────────────────────────────────────────────────
+function doLogin() {
+  const ident = document.getElementById('l-ident').value.trim();
+  const pass  = document.getElementById('l-pass').value;
+  if (!ident || !pass) { showMsg('l-msg','Please fill in all fields.','err'); return; }
+  const special = KC.checkSpecial(ident, pass);
+  if (special) {
+    KC.setSession(special);
+    showMsg('l-msg','Welcome, ' + special.name + '! Redirecting…','ok');
+    setTimeout(() => { window.location.href = special.role==='admin' ? 'admin.html' : 'designer.html'; }, 800);
+    return;
+  }
+  const user = KC.findUser(ident, pass);
+  if (!user) { showMsg('l-msg','Invalid credentials. Please try again.','err'); return; }
+  KC.setSession(user);
+  showMsg('l-msg','Welcome back, ' + user.username + '!','ok');
+  setTimeout(() => { window.location.href = 'index.html'; }, 700);
+}
+
+// ── Signup ───────────────────────────────────────────────
+function doSignup() {
+  const fn=document.getElementById('s-fn').value.trim(), ln=document.getElementById('s-ln').value.trim();
+  const un=document.getElementById('s-un').value.trim(), em=document.getElementById('s-em').value.trim();
+  const ph=document.getElementById('s-ph').value.trim();
+  const pw=document.getElementById('s-pw').value, cp=document.getElementById('s-cpw').value;
+  if (!fn||!un||!em||!pw) { showMsg('s-msg','Please fill all required fields.','err'); return; }
+  if (pw.length<6)         { showMsg('s-msg','Password must be at least 6 characters.','err'); return; }
+  if (pw!==cp)             { showMsg('s-msg','Passwords do not match.','err'); return; }
+  if (!/\S+@\S+\.\S+/.test(em)) { showMsg('s-msg','Please enter a valid email.','err'); return; }
+  const r = KC.addUser({username:un,email:em,password:pw,firstName:fn,lastName:ln,phone:ph,role:'customer'});
+  if (!r.ok) { showMsg('s-msg',r.msg,'err'); return; }
+  KC.setSession(r.user);
+  showMsg('s-msg','Account created! Redirecting…','ok');
+  setTimeout(() => { window.location.href = 'index.html'; }, 800);
+}
+
+// ── Forgot Password ──────────────────────────────────────
+function showFP() {
+  document.getElementById('lf-main').style.display='none';
+  document.getElementById('lf-fp').style.display='block';
+  document.querySelectorAll('.fp-step').forEach(s=>s.classList.remove('active'));
+  document.getElementById('fp-s1').classList.add('active');
+}
+function hideFP() {
+  document.getElementById('lf-main').style.display='block';
+  document.getElementById('lf-fp').style.display='none';
+}
+
+async function fpSendOTP() {
+  const email = document.getElementById('fp-email').value.trim();
+  if (!email) { showMsg('fp-m1','Please enter your email.','err'); return; }
+  if (!/\S+@\S+\.\S+/.test(email)) { showMsg('fp-m1','Please enter a valid email address.','err'); return; }
+
+  const user = KC.getUsers().find(u => u.email === email);
+  if (!user) { showMsg('fp-m1','No account found with that email address.','err'); return; }
+
+  fpEmail = email;
+  const otp = KC.generateOTP(email);
+  const btn = document.getElementById('fp-send-btn');
+  btn.disabled = true;
+  btn.textContent = '📤 Sending…';
+
+  if (EMAIL_CONFIGURED) {
+    try {
+      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+        to_email:  email,
+        otp_code:  otp,
+        user_name: user.firstName || user.username
+      });
+      // Success — don't show OTP on screen
+      document.getElementById('fp-otp-note').className = 'otp-note';
+      document.getElementById('fp-otp-note').innerHTML =
+        '✅ OTP sent to <strong>' + email + '</strong><br>' +
+        '<small>Check your inbox. If not there, check your spam folder.</small>';
+    } catch(err) {
+      // EmailJS failed — fallback to demo mode
+      console.error('EmailJS error:', err);
+      document.getElementById('fp-otp-note').className = 'otp-note demo';
+      document.getElementById('fp-otp-note').innerHTML =
+        '⚠️ Email sending failed. Demo OTP: <strong>' + otp + '</strong><br>' +
+        '<small>Error: ' + (err.text || 'Check your EmailJS config') + '</small>';
+    }
+  } else {
+    // Demo mode — show OTP on screen
+    document.getElementById('fp-otp-note').className = 'otp-note demo';
+    document.getElementById('fp-otp-note').innerHTML =
+      '⚠️ EmailJS not set up yet. Demo OTP: <strong>' + otp + '</strong><br>' +
+      '<small>Follow <strong>EMAILJS_SETUP.md</strong> to enable real Gmail delivery.</small>';
+  }
+
+  document.getElementById('fp-s1').classList.remove('active');
+  document.getElementById('fp-s2').classList.add('active');
+  btn.textContent = 'Send OTP to Email';
+  btn.disabled = false;
+  startResendTimer();
+}
+
+function fpResend() {
+  const otp = KC.generateOTP(fpEmail);
+  if (EMAIL_CONFIGURED) {
+    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+      to_email:  fpEmail,
+      otp_code:  otp,
+      user_name: fpEmail
+    }).then(() => {
+      document.getElementById('fp-otp-note').className = 'otp-note';
+      document.getElementById('fp-otp-note').innerHTML = '✅ New OTP sent to <strong>' + fpEmail + '</strong>.';
+    }).catch(() => {
+      document.getElementById('fp-otp-note').className = 'otp-note demo';
+      document.getElementById('fp-otp-note').innerHTML = '⚠️ Resend failed. Demo OTP: <strong>' + otp + '</strong>';
+    });
+  } else {
+    document.getElementById('fp-otp-note').className = 'otp-note demo';
+    document.getElementById('fp-otp-note').innerHTML = '⚠️ Demo OTP (new): <strong>' + otp + '</strong>';
+  }
+  showMsg('fp-m2', 'New code sent!', 'info');
+  startResendTimer();
+}
+
+function startResendTimer() {
+  let s = 30;
+  const btn = document.getElementById('fp-resend');
+  btn.disabled = true;
+  clearInterval(fpTimer);
+  fpTimer = setInterval(() => {
+    btn.textContent = s>0 ? 'Resend ('+s--+'s)' : 'Resend';
+    if (s<0) { clearInterval(fpTimer); btn.disabled=false; }
+  }, 1000);
+}
+
+function fpVerify() {
+  const otp = document.getElementById('fp-otp').value.trim();
+  if (!otp) { showMsg('fp-m2','Please enter the OTP.','err'); return; }
+  if (!KC.verifyOTP(fpEmail,otp)) { showMsg('fp-m2','Invalid or expired OTP. Try resending.','err'); return; }
+  document.getElementById('fp-s2').classList.remove('active');
+  document.getElementById('fp-s3').classList.add('active');
+}
+
+function fpReset() {
+  const np=document.getElementById('fp-np').value, cp=document.getElementById('fp-cp').value;
+  if (!np||np.length<6) { showMsg('fp-m3','Min 6 characters.','err'); return; }
+  if (np!==cp)          { showMsg('fp-m3','Passwords do not match.','err'); return; }
+  const users=KC.getUsers(), i=users.findIndex(u=>u.email===fpEmail);
+  if (i===-1) { showMsg('fp-m3','Something went wrong.','err'); return; }
+  users[i].password=np; KC.saveUsers(users);
+  showMsg('fp-m3','Password reset successfully! Redirecting…','ok');
+  setTimeout(()=>{hideFP();switchTab('login');document.querySelectorAll('.fp-step').forEach(s=>s.classList.remove('active'));document.getElementById('fp-s1').classList.add('active');},1500);
+}
+</script>
+</body>
+</html>

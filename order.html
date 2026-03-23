@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Place Order — Kinetic Creations</title>
+<link rel="icon" href="images/logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#1a3cc8;--blue-dark:#1230a0;--blue-light:#e8eeff;
+  --bg:#f0f2fa;--card:#ffffff;--border:#d1d5e8;
+  --accent:#1a3cc8;--accent2:#e8231a;--text:#0d1333;--muted:#6b7280;
+  --red:#e8231a;--green:#15803d;
+  --grad:linear-gradient(135deg,#1a3cc8,#e8231a);
+}
+body{font-family:'Poppins',sans-serif;background:#f0f2fa;color:var(--text);min-height:100vh;}
+a{text-decoration:none;color:inherit;}
+
+/* navbar */
+nav{background:rgba(255,255,255,.97);backdrop-filter:blur(12px);border-bottom:1.5px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.nav-logo{display:flex;align-items:center;gap:10px;}
+.nav-logo img{width:36px;}
+.nav-logo span{font-weight:700;font-size:1rem;}
+.nav-back{display:flex;align-items:center;gap:6px;font-size:.85rem;color:var(--muted);transition:color .2s;}
+.nav-back:hover{color:var(--accent);}
+.nav-back svg{width:16px;height:16px;}
+
+.container{max-width:900px;margin:0 auto;padding:32px 20px 60px;}
+h1{font-size:1.8rem;font-weight:700;margin-bottom:6px;}
+.sub{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
+
+/* steps */
+.steps{display:flex;align-items:center;gap:0;margin-bottom:40px;overflow-x:auto;padding-bottom:4px;}
+.step{display:flex;align-items:center;gap:0;flex-shrink:0;}
+.step-dot{width:32px;height:32px;border-radius:50%;border:2px solid var(--border);background:#ffffff;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:600;color:var(--muted);transition:all .3s;}
+.step-dot.active{background:var(--grad);border-color:transparent;color:#fff;}
+.step-dot.done{background:var(--green);border-color:transparent;color:#fff;}
+.step-label{font-size:.75rem;color:var(--muted);margin-left:8px;white-space:nowrap;}
+.step-line{width:40px;height:2px;background:var(--border);margin:0 8px;flex-shrink:0;}
+
+.section{display:none;}
+.section.active{display:block;}
+
+/* template grid */
+.tpl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;margin-bottom:24px;}
+.tpl-card{background:#ffffff;border:2px solid var(--border);border-radius:14px;padding:20px 14px;cursor:pointer;text-align:center;transition:all .2s;}
+.tpl-card:hover{border-color:var(--accent);transform:translateY(-2px);}
+.tpl-card.selected{border-color:var(--accent);background:var(--blue-light);}
+.tpl-icon{font-size:2.2rem;margin-bottom:8px;}
+.tpl-name{font-size:.82rem;font-weight:600;}
+.tpl-price{font-size:.75rem;color:var(--accent);margin-top:4px;}
+
+/* form */
+.form-group{margin-bottom:18px;}
+.form-group label{display:block;font-size:.8rem;font-weight:500;color:var(--muted);margin-bottom:7px;letter-spacing:.5px;text-transform:uppercase;}
+.form-group input,.form-group textarea,.form-group select{width:100%;background:#f0f2fa;border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-family:'Poppins',sans-serif;font-size:.92rem;outline:none;transition:border .2s;}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{border-color:var(--accent);}
+.form-group select option{background:#ffffff;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+
+/* payment */
+.pay-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:24px;}
+.pay-card{background:#ffffff;border:2px solid var(--border);border-radius:12px;padding:16px 12px;cursor:pointer;text-align:center;transition:all .2s;}
+.pay-card:hover{border-color:var(--accent);}
+.pay-card.selected{border-color:var(--accent);background:var(--blue-light);}
+.pay-icon{font-size:1.8rem;margin-bottom:6px;display:flex;justify-content:center;align-items:center;}
+.pay-name{font-size:.82rem;font-weight:600;}
+
+/* esewa/khalti branding */
+.esewa{color:#60bb46;}
+.khalti{color:#5c2d91;}
+.imepay{color:#ef3e33;}
+.connectips{color:#1a56db;}
+.nabil{color:#c41230;}
+.mobile{color:var(--accent);}
+
+/* order summary */
+.summary-card{background:#ffffff;border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:24px;}
+.summary-row{display:flex;justify-content:space-between;font-size:.88rem;padding:8px 0;border-bottom:1px solid var(--border);}
+.summary-row:last-child{border-bottom:none;font-weight:700;font-size:1rem;color:var(--accent);}
+.summary-row span:first-child{color:var(--muted);}
+
+.btn-main{padding:13px 28px;background:var(--grad);border:none;border-radius:10px;color:#fff;font-family:'Poppins',sans-serif;font-size:.95rem;font-weight:600;cursor:pointer;transition:opacity .2s,transform .15s;}
+.btn-main:hover{opacity:.9;transform:translateY(-1px);}
+.btn-outline{padding:13px 28px;background:transparent;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Poppins',sans-serif;font-size:.95rem;font-weight:500;cursor:pointer;transition:all .2s;margin-right:12px;}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent);}
+
+.btn-row{display:flex;align-items:center;gap:0;margin-top:8px;flex-wrap:wrap;gap:10px;}
+
+.msg{font-size:.82rem;margin-top:12px;padding:10px 14px;border-radius:8px;display:none;}
+.msg.show{display:block;}
+.msg.ok{background:#eefaf3;color:#15803d;border:1px solid #86efac;}
+.msg.err{background:#fff1f0;color:#dc2626;border:1px solid #fca5a5;}
+
+/* success */
+.success-wrap{text-align:center;padding:40px 20px;}
+.success-icon{font-size:4rem;margin-bottom:16px;}
+.success-wrap h2{font-size:1.6rem;margin-bottom:10px;}
+.success-wrap p{color:var(--muted);font-size:.9rem;max-width:360px;margin:0 auto 24px;}
+.order-id-badge{display:inline-block;background:rgba(244,166,29,.15);border:1px solid rgba(244,166,29,.3);border-radius:8px;padding:8px 20px;font-weight:700;color:var(--accent);font-size:.95rem;margin-bottom:24px;}
+
+@media(max-width:580px){.row2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-logo">
+    <img src="images/logo.png" alt="Kinetic Creations">
+    <span>Kinetic Creations</span>
+  </div>
+  <a href="index.html" class="nav-back">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Back to Home
+  </a>
+</nav>
+
+<div class="container">
+  <h1>Place an Order</h1>
+  <p class="sub">Choose your template, fill in the details, and pay securely.</p>
+
+  <!-- STEPS -->
+  <div class="steps">
+    <div class="step">
+      <div class="step-dot active" id="dot1">1</div>
+      <span class="step-label">Template</span>
+    </div>
+    <div class="step-line"></div>
+    <div class="step">
+      <div class="step-dot" id="dot2">2</div>
+      <span class="step-label">Details</span>
+    </div>
+    <div class="step-line"></div>
+    <div class="step">
+      <div class="step-dot" id="dot3">3</div>
+      <span class="step-label">Payment</span>
+    </div>
+    <div class="step-line"></div>
+    <div class="step">
+      <div class="step-dot" id="dot4">4</div>
+      <span class="step-label">Confirm</span>
+    </div>
+  </div>
+
+  <!-- STEP 1: TEMPLATE -->
+  <div id="sec1" class="section active">
+    <h2 style="margin-bottom:18px;font-size:1.2rem;">Choose a Design Template</h2>
+    <div class="tpl-grid" id="tpl-grid">
+      <!-- filled by JS -->
+    </div>
+    <div id="tpl-msg" class="msg"></div>
+    <div class="btn-row">
+      <button class="btn-main" onclick="goStep(2)">Next: Fill Details →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: DETAILS -->
+  <div id="sec2" class="section">
+    <h2 style="margin-bottom:18px;font-size:1.2rem;">Your Details</h2>
+    <div class="row2">
+      <div class="form-group">
+        <label>Full Name *</label>
+        <input type="text" id="o-name" placeholder="Your full name">
+      </div>
+      <div class="form-group">
+        <label>Phone Number *</label>
+        <input type="tel" id="o-phone" placeholder="+977 98XXXXXXXX">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Delivery / Contact Address *</label>
+      <input type="text" id="o-address" placeholder="Street, City, District, Province">
+    </div>
+    <div class="form-group">
+      <label>Email (for updates)</label>
+      <input type="email" id="o-email" placeholder="you@email.com">
+    </div>
+    <div class="form-group">
+      <label>Design Requirements / Notes</label>
+      <textarea id="o-notes" rows="4" placeholder="Describe what you want — colours, text, style preferences..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>Quantity</label>
+      <input type="number" id="o-qty" value="1" min="1" max="999">
+    </div>
+    <div id="det-msg" class="msg"></div>
+    <div class="btn-row">
+      <button class="btn-outline" onclick="goStep(1)">← Back</button>
+      <button class="btn-main" onclick="goStep(3)">Next: Payment →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: PAYMENT -->
+  <div id="sec3" class="section">
+    <h2 style="margin-bottom:18px;font-size:1.2rem;">Select Payment Method</h2>
+    <div class="pay-grid">
+      <div class="pay-card" onclick="selectPay(this,'eSewa')">
+        <div class="pay-icon"><svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="48" height="48" rx="10" fill="#60BB46"/>
+  <text x="24" y="32" text-anchor="middle" font-family="Arial,sans-serif" font-size="22" font-weight="900" fill="white">e</text>
+</svg></div>
+        <div class="pay-name" style="color:#60BB46;font-weight:700">eSewa</div>
+      </div>
+      <div class="pay-card" onclick="selectPay(this,'Khalti')">
+        <div class="pay-icon"><svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="48" height="48" rx="10" fill="#5C2D91"/>
+  <text x="24" y="32" text-anchor="middle" font-family="Arial,sans-serif" font-size="22" font-weight="900" fill="white">K</text>
+</svg></div>
+        <div class="pay-name" style="color:#5C2D91;font-weight:700">Khalti</div>
+      </div>
+      <div class="pay-card" onclick="selectPay(this,'IME Pay')">
+        <div class="pay-icon"><svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="48" height="48" rx="10" fill="#EF3E33"/>
+  <text x="24" y="28" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="900" fill="white">IME</text>
+  <text x="24" y="40" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="white">Pay</text>
+</svg></div>
+        <div class="pay-name" style="color:#EF3E33;font-weight:700">IME Pay</div>
+      </div>
+      <div class="pay-card" onclick="selectPay(this,'ConnectIPS')">
+        <div class="pay-icon"><svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="48" height="48" rx="10" fill="#1A56DB"/>
+  <text x="24" y="28" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" font-weight="900" fill="white">Connect</text>
+  <text x="24" y="40" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="900" fill="white">IPS</text>
+</svg></div>
+        <div class="pay-name" style="color:#1A56DB;font-weight:700">ConnectIPS</div>
+      </div>
+      <div class="pay-card" onclick="selectPay(this,'Nabil Bank')">
+        <div class="pay-icon"><svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="48" height="48" rx="10" fill="#C41230"/>
+  <text x="24" y="28" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="900" fill="white">NABIL</text>
+  <text x="24" y="40" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700" fill="white">BANK</text>
+</svg></div>
+        <div class="pay-name" style="color:#C41230;font-weight:700">Nabil Bank</div>
+      </div>
+      <div class="pay-card" onclick="selectPay(this,'Mobile Banking')">
+        <div class="pay-icon"><svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="48" height="48" rx="10" fill="#1A3CC8"/>
+  <rect x="17" y="10" width="14" height="22" rx="2" fill="white" opacity=".9"/>
+  <rect x="20" y="34" width="8" height="2" rx="1" fill="white"/>
+</svg></div>
+        <div class="pay-name" style="color:#1A3CC8;font-weight:700">Mobile Banking</div>
+      </div>
+      <div class="pay-card" onclick="selectPay(this,'Cash on Delivery')">
+        <div class="pay-icon"><svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="48" height="48" rx="10" fill="#15803D"/>
+  <rect x="9" y="17" width="30" height="18" rx="3" fill="white" opacity=".9"/>
+  <circle cx="24" cy="26" r="5" fill="#15803D"/>
+  <text x="24" y="29.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" font-weight="900" fill="white">$</text>
+</svg></div>
+        <div class="pay-name" style="color:#15803D;font-weight:700">Cash on Delivery</div>
+      </div>
+    </div>
+
+    <!-- payment details input -->
+    <div id="pay-detail-wrap" style="display:none">
+      <div class="form-group">
+        <label id="pay-detail-label">Mobile Number / Account ID</label>
+        <input type="text" id="pay-detail-input" placeholder="">
+      </div>
+    </div>
+
+    <div id="pay-msg" class="msg"></div>
+    <div class="btn-row">
+      <button class="btn-outline" onclick="goStep(2)">← Back</button>
+      <button class="btn-main" onclick="goStep(4)">Review Order →</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: CONFIRM -->
+  <div id="sec4" class="section">
+    <h2 style="margin-bottom:18px;font-size:1.2rem;">Order Summary</h2>
+    <div class="summary-card" id="summary-card"></div>
+    <div id="conf-msg" class="msg"></div>
+    <div class="btn-row">
+      <button class="btn-outline" onclick="goStep(3)">← Back</button>
+      <button class="btn-main" onclick="placeOrder()">✓ Confirm &amp; Place Order</button>
+    </div>
+  </div>
+
+  <!-- SUCCESS -->
+  <div id="sec-success" class="section">
+    <div class="success-wrap">
+      <div class="success-icon">🎉</div>
+      <h2>Order Placed Successfully!</h2>
+      <p>Our designer will review your order and get back to you shortly. You can chat with the designer for updates.</p>
+      <div class="order-id-badge" id="success-order-id"></div>
+      <div class="btn-row" style="justify-content:center;">
+        <a href="index.html" class="btn-outline">Back to Home</a>
+        <a href="chat.html" class="btn-main">Chat with Designer →</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="db.js"></script>
+<script>
+const TEMPLATES = [
+  { id:'wedding',   name:'Wedding Card',    icon:'💒', price:500,  desc:'Elegant wedding invitation designs' },
+  { id:'banner',    name:'Banner',          icon:'🎨', price:400,  desc:'Flex / digital banners' },
+  { id:'idcard',    name:'ID Card',         icon:'🪪', price:300,  desc:'Professional ID / visiting cards' },
+  { id:'3d',        name:'3D Design',       icon:'🌐', price:800,  desc:'3D text and product mockups' },
+  { id:'logo',      name:'Logo',            icon:'✨', price:600,  desc:'Brand logos and identity' },
+  { id:'poster',    name:'Poster',          icon:'🖼️', price:450,  desc:'Event, promotion posters' },
+  { id:'tshirt',    name:'T-Shirt Design',  icon:'👕', price:350,  desc:'Apparel and merchandise prints' },
+  { id:'social',    name:'Social Media',    icon:'📱', price:250,  desc:'FB covers, IG posts, thumbnails' },
+  { id:'menu',      name:'Menu Card',       icon:'📋', price:400,  desc:'Restaurant / café menu designs' },
+  { id:'custom',    name:'Custom',          icon:'🎯', price:0,    desc:'Describe your own requirement' },
+];
+
+let selectedTemplate = null;
+let selectedPayment  = null;
+let currentStep = 1;
+
+// render templates
+const grid = document.getElementById('tpl-grid');
+TEMPLATES.forEach(t => {
+  const d = document.createElement('div');
+  d.className = 'tpl-card';
+  d.dataset.id = t.id;
+  d.innerHTML = `<div class="tpl-icon">${t.icon}</div><div class="tpl-name">${t.name}</div><div class="tpl-price">${t.price ? 'Rs. '+t.price : 'Negotiable'}</div>`;
+  d.onclick = () => {
+    document.querySelectorAll('.tpl-card').forEach(c => c.classList.remove('selected'));
+    d.classList.add('selected');
+    selectedTemplate = t;
+  };
+  grid.appendChild(d);
+});
+
+function selectPay(el, name) {
+  document.querySelectorAll('.pay-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedPayment = name;
+  const wrap = document.getElementById('pay-detail-wrap');
+  const lbl  = document.getElementById('pay-detail-label');
+  const inp  = document.getElementById('pay-detail-input');
+  if (name === 'Cash on Delivery') {
+    wrap.style.display = 'none';
+  } else {
+    wrap.style.display = 'block';
+    lbl.textContent = name + ' ID / Phone Number';
+    inp.placeholder = name === 'Mobile Banking' ? 'Account number' : name + ' registered number';
+  }
+}
+
+function showMsg(id, text, type) {
+  const el = document.getElementById(id);
+  el.textContent = text; el.className = 'msg show ' + type;
+}
+
+function goStep(n) {
+  // validate before advancing
+  if (n > currentStep) {
+    if (currentStep === 1) {
+      if (!selectedTemplate) { showMsg('tpl-msg','Please select a template.','err'); return; }
+    }
+    if (currentStep === 2) {
+      const name = document.getElementById('o-name').value.trim();
+      const phone = document.getElementById('o-phone').value.trim();
+      const addr  = document.getElementById('o-address').value.trim();
+      if (!name || !phone || !addr) { showMsg('det-msg','Please fill in Name, Phone, and Address.','err'); return; }
+    }
+    if (currentStep === 3) {
+      if (!selectedPayment) { showMsg('pay-msg','Please select a payment method.','err'); return; }
+      if (selectedPayment !== 'Cash on Delivery') {
+        const pid = document.getElementById('pay-detail-input').value.trim();
+        if (!pid) { showMsg('pay-msg','Please enter your ' + selectedPayment + ' account/number.','err'); return; }
+      }
+    }
+  }
+
+  // build summary
+  if (n === 4) buildSummary();
+
+  document.getElementById('sec'+currentStep).classList.remove('active');
+  currentStep = n;
+  document.getElementById('sec'+n).classList.add('active');
+
+  // update dots
+  for (let i=1; i<=4; i++) {
+    const dot = document.getElementById('dot'+i);
+    if (i < n) { dot.classList.add('done'); dot.classList.remove('active'); dot.textContent = '✓'; }
+    else if (i === n) { dot.classList.add('active'); dot.classList.remove('done'); dot.textContent = i; }
+    else { dot.classList.remove('active','done'); dot.textContent = i; }
+  }
+}
+
+function buildSummary() {
+  const qty   = parseInt(document.getElementById('o-qty').value) || 1;
+  const price = selectedTemplate.price * qty;
+  document.getElementById('summary-card').innerHTML = `
+    <div class="summary-row"><span>Template</span><span>${selectedTemplate.icon} ${selectedTemplate.name}</span></div>
+    <div class="summary-row"><span>Customer Name</span><span>${document.getElementById('o-name').value}</span></div>
+    <div class="summary-row"><span>Phone</span><span>${document.getElementById('o-phone').value}</span></div>
+    <div class="summary-row"><span>Address</span><span>${document.getElementById('o-address').value}</span></div>
+    <div class="summary-row"><span>Quantity</span><span>${qty}</span></div>
+    <div class="summary-row"><span>Payment</span><span>${selectedPayment}</span></div>
+    <div class="summary-row"><span>Notes</span><span style="max-width:200px;text-align:right">${document.getElementById('o-notes').value || '—'}</span></div>
+    <div class="summary-row"><span>Total</span><span>Rs. ${price || 'Negotiable'}</span></div>
+  `;
+}
+
+function placeOrder() {
+  const session = KC.getSession();
+  const qty = parseInt(document.getElementById('o-qty').value) || 1;
+  const order = KC.addOrder({
+    userId: session ? session.id : 'guest',
+    username: session ? session.username : document.getElementById('o-name').value,
+    template: selectedTemplate.name,
+    templateId: selectedTemplate.id,
+    name: document.getElementById('o-name').value,
+    phone: document.getElementById('o-phone').value,
+    address: document.getElementById('o-address').value,
+    email: document.getElementById('o-email').value,
+    notes: document.getElementById('o-notes').value,
+    qty,
+    price: selectedTemplate.price * qty,
+    payment: selectedPayment,
+    paymentId: document.getElementById('pay-detail-input') ? document.getElementById('pay-detail-input').value : ''
+  });
+  document.getElementById('sec4').classList.remove('active');
+  document.getElementById('sec-success').classList.add('active');
+  document.getElementById('success-order-id').textContent = 'Order ID: ' + order.id;
+}
+</script>
+</body>
+</html>

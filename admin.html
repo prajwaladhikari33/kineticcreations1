@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard — Kinetic Creations</title>
+<link rel="icon" href="images/logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#1a3cc8;--blue-dark:#1230a0;--blue-light:#e8eeff;--blue-mid:#d0d9f7;
+  --red:#e8231a;--red-dark:#c01a12;--red-light:#fff1f0;
+  --bg:#f0f2fa;--white:#fff;--text:#0d1333;--muted:#6b7280;
+  --border:#d1d5e8;--shadow:0 2px 12px rgba(26,60,200,.08);
+  --green:#15803d;--green-light:#eefaf3;--orange:#ea580c;--purple:#7c3aed;
+}
+body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
+a{text-decoration:none;color:inherit;}
+
+.sidebar{width:230px;background:var(--white);border-right:1.5px solid var(--border);display:flex;flex-direction:column;position:fixed;left:0;top:0;height:100vh;z-index:200;box-shadow:var(--shadow);overflow-y:auto;transition:transform .3s cubic-bezier(.4,0,.2,1);}
+.sb-logo{display:flex;align-items:center;gap:10px;padding:18px 16px;border-bottom:1.5px solid var(--border);}
+.sb-logo img{width:36px;}
+.sb-logo .brand{font-weight:800;font-size:.9rem;color:var(--blue);}
+.sb-logo .role{font-size:.63rem;color:var(--red);text-transform:uppercase;letter-spacing:.5px;}
+.sb-section{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;padding:12px 14px 4px;font-weight:600;}
+.sb-nav{flex:1;padding:10px 10px;display:flex;flex-direction:column;gap:2px;}
+.sb-btn{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;cursor:pointer;font-size:.83rem;color:var(--muted);transition:all .2s;border:none;background:transparent;width:100%;text-align:left;font-family:'Poppins',sans-serif;}
+.sb-btn:hover{background:var(--blue-light);color:var(--blue);}
+.sb-btn.active{background:var(--blue);color:#fff;font-weight:600;}
+.sb-btn .icon{font-size:.9rem;width:20px;text-align:center;}
+.sb-bottom{padding:12px;border-top:1.5px solid var(--border);}
+.logout-btn{display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--red);cursor:pointer;padding:9px 12px;border-radius:8px;background:none;border:none;width:100%;font-family:'Poppins',sans-serif;transition:background .2s;}
+.logout-btn:hover{background:var(--red-light);}
+
+.main{margin-left:230px;flex:1;display:flex;flex-direction:column;min-height:100vh;width:calc(100% - 230px);}
+.topbar{background:var(--white);border-bottom:1.5px solid var(--border);padding:13px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40;box-shadow:var(--shadow);width:100%;}
+.topbar h2{font-size:1rem;font-weight:700;color:var(--blue);}
+.topbar .ham-btn{flex-shrink:0;margin-right:8px;}
+.user-chip{display:flex;align-items:center;gap:7px;background:var(--red-light);border-radius:20px;padding:5px 14px;font-size:.78rem;font-weight:700;color:var(--red);}
+
+.content{padding:22px 24px;flex:1;}
+.panel{display:none;} .panel.active{display:block;}
+.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.section-title{font-size:1rem;font-weight:700;color:var(--text);}
+
+.stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:12px;margin-bottom:22px;}
+.stat-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;box-shadow:var(--shadow);}
+.stat-num{font-size:1.7rem;font-weight:800;color:var(--blue);}
+.stat-lbl{font-size:.7rem;color:var(--muted);margin-top:3px;}
+
+.table-wrap{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:auto;box-shadow:var(--shadow);margin-bottom:18px;}
+table{width:100%;border-collapse:collapse;font-size:.79rem;min-width:500px;}
+thead{background:var(--blue-light);}
+th{padding:10px 13px;text-align:left;color:var(--blue);font-weight:700;border-bottom:1.5px solid var(--border);white-space:nowrap;}
+td{padding:9px 13px;border-bottom:1px solid var(--border);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#f8f9ff;}
+
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:.68rem;font-weight:700;}
+.badge-pending{background:#fef9ec;color:#a16207;border:1px solid #fde68a;}
+.badge-inprog{background:var(--blue-light);color:var(--blue);border:1px solid var(--blue-mid);}
+.badge-done{background:var(--green-light);color:var(--green);border:1px solid #86efac;}
+.badge-cancelled{background:var(--red-light);color:var(--red);border:1px solid #fca5a5;}
+.badge-customer{background:#f3e8ff;color:var(--purple);border:1px solid #d8b4fe;}
+.badge-admin{background:var(--red-light);color:var(--red);border:1px solid #fca5a5;}
+.badge-designer{background:var(--blue-light);color:var(--blue);border:1px solid var(--blue-mid);}
+
+.del-btn{padding:4px 10px;border:1px solid #fca5a5;border-radius:6px;background:transparent;color:var(--red);font-size:.7rem;cursor:pointer;transition:all .2s;font-family:'Poppins',sans-serif;}
+.del-btn:hover{background:var(--red-light);}
+select.status-sel{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:4px 7px;font-size:.73rem;color:var(--text);font-family:'Poppins',sans-serif;outline:none;}
+
+/* form cards */
+.form-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:18px;box-shadow:var(--shadow);}
+.form-card h3{font-size:.9rem;font-weight:700;margin-bottom:16px;color:var(--blue);display:flex;align-items:center;gap:6px;}
+.fg{margin-bottom:13px;}
+.fg label{display:block;font-size:.75rem;font-weight:600;color:var(--text);margin-bottom:5px;}
+.fg input,.fg textarea,.fg select{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:9px;padding:9px 12px;color:var(--text);font-family:'Poppins',sans-serif;font-size:.87rem;outline:none;transition:border .2s;}
+.fg input:focus,.fg textarea:focus,.fg select:focus{border-color:var(--blue);background:var(--white);}
+.fg select option{background:#fff;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.btn-main{padding:9px 20px;background:var(--blue);border:none;border-radius:9px;color:#fff;font-family:'Poppins',sans-serif;font-size:.86rem;font-weight:700;cursor:pointer;transition:background .2s;}
+.btn-main:hover{background:var(--blue-dark);}
+.btn-red{background:var(--red);}
+.btn-red:hover{background:var(--red-dark);}
+
+.msg-inline{font-size:.78rem;margin-top:10px;padding:8px 12px;border-radius:7px;display:none;}
+.msg-inline.show{display:block;}
+.msg-inline.ok{background:var(--green-light);color:var(--green);border:1px solid #86efac;}
+.msg-inline.err{background:var(--red-light);color:var(--red);border:1px solid #fca5a5;}
+
+/* member grid */
+.member-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:18px;}
+.member-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center;box-shadow:var(--shadow);}
+.m-photo{width:66px;height:66px;border-radius:50%;object-fit:cover;margin:0 auto 10px;display:block;border:2px solid var(--border);}
+.m-placeholder{width:66px;height:66px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--red));display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:1.5rem;font-weight:800;color:#fff;}
+.m-name{font-weight:700;font-size:.88rem;margin-bottom:2px;}
+.m-role{font-size:.72rem;color:var(--muted);margin-bottom:8px;}
+.skill-tags{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-bottom:10px;}
+.skill-tag{background:var(--blue-light);color:var(--blue);font-size:.65rem;font-weight:600;border-radius:10px;padding:2px 8px;}
+
+/* design grid */
+.design-grid-mgr{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:18px;}
+.dg-item{background:var(--white);border:1.5px solid var(--border);border-radius:10px;overflow:hidden;position:relative;box-shadow:var(--shadow);}
+.dg-item img{width:100%;height:100px;object-fit:cover;display:block;}
+.dg-info{padding:7px 10px;display:flex;align-items:center;justify-content:space-between;}
+.dg-name{font-size:.74rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+.dg-del{width:22px;height:22px;border-radius:50%;background:var(--red-light);border:none;color:var(--red);font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+/* old broken query removed */
+
+/* ── Hamburger & Mobile Sidebar ── */
+.ham-btn{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:8px;z-index:300;border-radius:8px;transition:background .2s;}
+.ham-btn:hover{background:var(--blue-light);}
+.ham-btn span{display:block;width:20px;height:2px;background:var(--blue);border-radius:2px;transition:all .3s;}
+.ham-btn.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+.ham-btn.open span:nth-child(2){opacity:0;transform:scaleX(0);}
+.ham-btn.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:199;backdrop-filter:blur(2px);}
+.sidebar-overlay.show{display:block;}
+@media(max-width:900px){
+  .ham-btn{display:flex;}
+  .sidebar{transform:translateX(-100%);z-index:200;}
+  .sidebar.open{transform:translateX(0);box-shadow:4px 0 24px rgba(0,0,0,.2);}
+  .main{margin-left:0 !important;width:100% !important;}
+  .topbar{padding:12px 16px;}
+  .content{padding:16px;}
+  .stats-row{grid-template-columns:repeat(2,1fr);}
+  .table-wrap{overflow-x:auto;}
+  table{min-width:500px;}
+  .row2{grid-template-columns:1fr;}
+}
+@media(max-width:480px){
+  .stats-row{grid-template-columns:1fr 1fr;}
+  .content{padding:12px;}
+  .topbar h2{font-size:.9rem;}
+}
+
+/* Security */
+body.auth-loading{visibility:hidden;}
+.auth-block{display:none;position:fixed;inset:0;background:#f0f2fa;z-index:9999;
+  flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+.auth-block.show{display:flex;}
+.auth-block .lock-icon{font-size:3rem;}
+.auth-block p{color:#e8231a;font-weight:700;font-size:1rem;}
+.auth-block small{color:#6b7280;font-size:.82rem;}
+
+/* Toggle switch */
+.toggle-wrap{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--bg);border-radius:10px;margin-bottom:16px;}
+.toggle-wrap label{font-size:.85rem;font-weight:600;color:var(--text);cursor:pointer;flex:1;}
+.toggle-wrap small{font-size:.75rem;color:var(--muted);}
+.toggle-switch{position:relative;width:44px;height:24px;flex-shrink:0;}
+.toggle-switch input{opacity:0;width:0;height:0;position:absolute;}
+.toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:24px;cursor:pointer;transition:.3s;}
+.toggle-slider:before{content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s;box-shadow:0 1px 4px rgba(0,0,0,.2);}
+.toggle-switch input:checked+.toggle-slider{background:var(--blue);}
+.toggle-switch input:checked+.toggle-slider:before{transform:translateX(20px);}
+</style>
+</head>
+<body class="auth-loading">
+<div class="auth-block" id="auth-block">
+  <div class="lock-icon">🔒</div>
+  <p>Access Denied</p>
+  <small>You must be logged in as an Admin to view this page.</small>
+  <small>Redirecting to login...</small>
+</div>
+
+
+<div class="sidebar-overlay" id="sb-overlay" onclick="closeSidebar()"></div>
+<div class="sidebar" id="sidebar">
+  <div class="sb-logo">
+    <img src="images/logo.png" alt="">
+    <div><div class="brand">Kinetic Admin</div><div class="role">Administrator</div></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-section">Dashboard</div>
+    <button class="sb-btn active" onclick="showPanel('overview',this);closeSidebar()"><span class="icon">📊</span>Overview</button>
+    <div class="sb-section">Users</div>
+    <button class="sb-btn" onclick="showPanel('users',this);closeSidebar()"><span class="icon">👥</span>All Users</button>
+    <div class="sb-section">Content</div>
+    <button class="sb-btn" onclick="showPanel('designs',this);closeSidebar()"><span class="icon">🎨</span>Manage Designs</button>
+    <button class="sb-btn" onclick="showPanel('members',this);closeSidebar()"><span class="icon">🧑‍🎨</span>Team Members</button>
+    <button class="sb-btn" onclick="showPanel('contact',this);closeSidebar()"><span class="icon">📞</span>Contact Info</button>
+    <button class="sb-btn" onclick="showPanel('clients',this);closeSidebar()"><span class="icon">🏢</span>Our Clients</button>
+    <div class="sb-section">Settings</div>
+    <button class="sb-btn" onclick="showPanel('credentials',this);closeSidebar()"><span class="icon">🔑</span>Change Credentials</button>
+  </nav>
+  <div class="sb-bottom">
+    <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <button class="ham-btn" id="ham-btn" onclick="toggleSidebar()" aria-label="Open menu"><span></span><span></span><span></span></button>
+    <h2 id="topbar-title">Overview</h2>
+    <div class="user-chip">🛡️ Admin</div>
+  </div>
+  <div class="content">
+
+    <!-- OVERVIEW -->
+    <div id="panel-overview" class="panel active">
+      <div class="stats-row" id="a-stats"></div>
+      <div class="section-hdr"><div class="section-title">Recent Signups</div></div>
+      <div class="table-wrap" id="recent-users"></div>
+    </div>
+
+    <!-- USERS -->
+    <div id="panel-users" class="panel">
+      <div class="section-hdr"><div class="section-title">Registered Users</div></div>
+      <div class="table-wrap" id="users-wrap"></div>
+    </div>
+
+    <!-- DESIGNS -->
+    <div id="panel-designs" class="panel">
+      <div class="section-hdr"><div class="section-title">Portfolio Designs</div></div>
+      <div class="form-card">
+        <h3>➕ Add New Design</h3>
+        <div class="row2">
+          <div class="fg"><label>Design Name *</label><input type="text" id="d-name" placeholder="e.g. Wedding Vol. 2"></div>
+          <div class="fg"><label>Category</label>
+            <select id="d-cat"><option>Wedding Card</option><option>Banner</option><option>ID Card</option><option>3D Design</option><option>Logo</option><option>Poster</option><option>T-Shirt</option><option>Social Media</option><option>Custom</option></select>
+          </div>
+        </div>
+        <div class="fg"><label>Image URL *</label><input type="url" id="d-url" placeholder="https://... or images/designs/filename.jpg"></div>
+        <button class="btn-main" onclick="addDesign()">Add to Portfolio</button>
+        <div id="d-msg" class="msg-inline"></div>
+      </div>
+      <div class="section-title" style="margin-bottom:12px">Added Designs (<span id="d-count">0</span>)</div>
+      <div class="design-grid-mgr" id="designs-grid"></div>
+    </div>
+
+    <!-- MEMBERS -->
+    <div id="panel-members" class="panel">
+      <div class="section-hdr"><div class="section-title">Team Members</div></div>
+      <div class="form-card">
+        <h3>➕ Add Team Member</h3>
+        <div class="row2">
+          <div class="fg"><label>Full Name *</label><input type="text" id="m-name" placeholder="Arjun Karki"></div>
+          <div class="fg"><label>Role / Position *</label><input type="text" id="m-role" placeholder="Lead Designer"></div>
+        </div>
+        <div class="fg"><label>Skills (comma separated)</label><input type="text" id="m-skills" placeholder="Photoshop, Illustrator, Logo Design"></div>
+        <div class="fg"><label>Photo URL</label><input type="url" id="m-photo" placeholder="https://... or images/about/photo.jpg"></div>
+        <button class="btn-main" onclick="addMember()">Add Member</button>
+        <div id="m-msg" class="msg-inline"></div>
+      </div>
+      <!-- Edit existing member -->
+      <div class="form-card" id="edit-member-card" style="display:none;border-color:var(--blue);">
+        <h3>✏️ Edit Member</h3>
+        <input type="hidden" id="em-id">
+        <div class="row2">
+          <div class="fg"><label>Full Name</label><input type="text" id="em-name" placeholder="Full name"></div>
+          <div class="fg"><label>Role</label><input type="text" id="em-role" placeholder="Role"></div>
+        </div>
+        <div class="fg"><label>Skills (comma separated)</label><input type="text" id="em-skills" placeholder="Photoshop, ..."></div>
+        <div class="fg"><label>Photo URL</label><input type="url" id="em-photo" placeholder="https://..."></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn-main" onclick="saveMemberEdit()">Save Changes</button>
+          <button onclick="document.getElementById('edit-member-card').style.display='none'" style="padding:9px 18px;border:1.5px solid var(--border);border-radius:9px;background:transparent;font-family:'Poppins',sans-serif;cursor:pointer;font-size:.86rem;">Cancel</button>
+        </div>
+        <div id="em-msg" class="msg-inline"></div>
+      </div>
+      <div class="section-title" style="margin-bottom:12px">Current Team</div>
+      <div class="member-grid" id="member-grid"></div>
+    </div>
+
+    <!-- CONTACT -->
+    <div id="panel-contact" class="panel">
+      <div class="section-hdr"><div class="section-title">Contact Information</div></div>
+      <div class="form-card">
+        <h3>✏️ Update Contact Details</h3>
+        <div class="fg"><label>Phone Number</label><input type="text" id="c-phone" placeholder="+977 98XXXXXXXX"></div>
+        <div class="fg"><label>WhatsApp Number</label><input type="text" id="c-wa" placeholder="+977 98XXXXXXXX"></div>
+        <div class="fg"><label>Facebook Page</label><input type="text" id="c-fb" placeholder="Kinetic Creations"></div>
+        <div class="fg"><label>Email</label><input type="email" id="c-email" placeholder="info@kineticcreations.np"></div>
+        <button class="btn-main" onclick="saveContact()">Save Changes</button>
+        <div id="c-msg" class="msg-inline"></div>
+      </div>
+    </div>
+
+    <!-- CLIENTS -->
+    <div id="panel-clients" class="panel">
+      <div class="section-hdr"><div class="section-title">Our Clients — Logo Marquee</div></div>
+      <div class="form-card">
+        <h3>➕ Add Client Logo</h3>
+        <p style="font-size:.8rem;color:var(--muted);margin-bottom:14px;line-height:1.6;">
+          Add a <strong>client company name</strong> and either an <strong>image URL</strong> (from web) or a <strong>local file path</strong> (e.g. <code style="background:var(--bg);padding:1px 6px;border-radius:4px;">images/clients/logo1.png</code>). 
+          If no logo is provided, the client's initials will be shown instead.
+        </p>
+        <div class="toggle-wrap">
+          <div>
+            <label for="cl-showname-toggle">Show company name below logo</label>
+            <div><small>When ON, the client name appears under each logo in the marquee</small></div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="cl-showname-toggle" onchange="toggleClientName(this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="row2">
+          <div class="fg">
+            <label>Company Name *</label>
+            <input type="text" id="cl-name" placeholder="e.g. Bhat-Bhateni, NTC">
+          </div>
+          <div class="fg">
+            <label>Logo — Image URL or File Path</label>
+            <input type="text" id="cl-logo" placeholder="https://... or images/clients/logo.png">
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <button class="btn-main" onclick="addClient()">Add Client</button>
+          <label style="display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--muted);cursor:pointer;padding:9px 16px;border:1.5px dashed var(--border);border-radius:9px;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Upload Logo File
+            <input type="file" id="cl-file" accept="image/*" style="display:none" onchange="handleClientFile(this)">
+          </label>
+        </div>
+        <div id="cl-preview" style="display:none;margin-top:14px;padding:12px;background:var(--bg);border-radius:10px;display:flex;align-items:center;gap:12px;">
+          <img id="cl-preview-img" src="" style="max-height:48px;max-width:120px;object-fit:contain;border-radius:6px;" alt="">
+          <span id="cl-preview-name" style="font-size:.82rem;color:var(--muted);"></span>
+        </div>
+        <div id="cl-msg" class="msg-inline"></div>
+      </div>
+
+      <div class="section-title" style="margin-bottom:12px">Current Clients (<span id="cl-count">0</span>)</div>
+      <div id="clients-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:20px;"></div>
+      <p id="cl-empty" style="color:var(--muted);font-size:.85rem;display:none;">No clients added yet. Add your first client above.</p>
+    </div>
+
+
+    <!-- CREDENTIALS -->
+    <div id="panel-credentials" class="panel">
+      <div class="section-hdr"><div class="section-title">Change Admin & Designer Credentials</div></div>
+      <!-- Admin credentials -->
+      <div class="form-card">
+        <h3>🛡️ Admin Account</h3>
+        <div class="row2">
+          <div class="fg"><label>New Username</label><input type="text" id="a-un" placeholder="New admin username"></div>
+          <div class="fg"><label>New Password</label><input type="password" id="a-pw" placeholder="New password"></div>
+        </div>
+        <div class="fg"><label>Current Password (required to confirm)</label><input type="password" id="a-cur" placeholder="Current admin password"></div>
+        <button class="btn-main" onclick="saveAdminCreds()">Update Admin Credentials</button>
+        <div id="a-cred-msg" class="msg-inline"></div>
+      </div>
+      <!-- Designer credentials -->
+      <div class="form-card">
+        <h3>🎨 Designer Account</h3>
+        <div class="row2">
+          <div class="fg"><label>New Username</label><input type="text" id="da-un" placeholder="New designer username"></div>
+          <div class="fg"><label>New Password</label><input type="password" id="da-pw" placeholder="New password"></div>
+        </div>
+        <div class="fg"><label>Admin Password (required to confirm)</label><input type="password" id="da-confirm" placeholder="Your admin password"></div>
+        <button class="btn-main" onclick="saveDesignerCreds()">Update Designer Credentials</button>
+        <div id="da-cred-msg" class="msg-inline"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="db.js"></script>
+<script>
+// ── SECURITY GUARD ──────────────────────────────────────
+(function() {
+  const s = KC.getSession();
+  if (!s || s.role !== 'admin') {
+    document.getElementById('auth-block').classList.add('show');
+    setTimeout(() => { window.location.href = 'login.html'; }, 1800);
+    return;
+  }
+  document.body.classList.remove('auth-loading');
+})();
+const session = KC.getSession();
+
+function showPanel(name, btn) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  if(btn) btn.classList.add('active');
+  const T={overview:'Overview',users:'Registered Users',designs:'Manage Designs',members:'Team Members',contact:'Contact Info',clients:'Our Clients',credentials:'Change Credentials'};
+  document.getElementById('topbar-title').textContent=T[name];
+  if(name==='overview') renderOverview();
+  if(name==='users')    renderUsers();
+  if(name==='designs')  renderDesigns();
+  if(name==='members')  renderMembers();
+  if(name==='contact')  loadContact();
+  if(name==='clients')  renderClients();
+}
+
+// ── OVERVIEW ─────────────────────────────────────────────
+function renderOverview() {
+  const users=KC.getUsers();
+  const unread=KC.getMessages().filter(m=>!m.read).length;
+  const members=KC.getMembers().length;
+  const designs=KC.getDesigns().length;
+  const clients=KC.getClients().length;
+  document.getElementById('a-stats').innerHTML=`
+    <div class="stat-card"><div class="stat-num" style="color:var(--purple)">${users.length}</div><div class="stat-lbl">Registered Users</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--blue)">${members}</div><div class="stat-lbl">Team Members</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--green)">${designs}</div><div class="stat-lbl">Designs Added</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--orange)">${clients}</div><div class="stat-lbl">Clients</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--red)">${unread}</div><div class="stat-lbl">Unread Msgs</div></div>`;
+  document.getElementById('recent-users').innerHTML=buildUsersTable([...users].sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).slice(0,5));
+}
+
+// ── USERS ─────────────────────────────────────────────────
+function renderUsers(){ document.getElementById('users-wrap').innerHTML=buildUsersTable(KC.getUsers()); }
+function buildUsersTable(users) {
+  if(!users.length) return '<p style="padding:18px;color:var(--muted);text-align:center;font-size:.85rem">No users yet.</p>';
+  return `<table><thead><tr><th>Username</th><th>Full Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Joined</th><th>Actions</th></tr></thead><tbody>
+    ${users.map(u=>`<tr>
+      <td><strong>${u.username}</strong></td>
+      <td>${(u.firstName||'')+' '+(u.lastName||'')}</td>
+      <td>${u.email}</td><td>${u.phone||'—'}</td>
+      <td><span class="badge badge-${u.role||'customer'}">${u.role||'customer'}</span></td>
+      <td style="font-size:.72rem;color:var(--muted)">${new Date(u.createdAt).toLocaleDateString()}</td>
+      <td><button class="del-btn" onclick="deleteUser('${u.id}')">Delete</button></td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+function deleteUser(id){if(!confirm('Delete this user?'))return;KC.saveUsers(KC.getUsers().filter(u=>u.id!==id));renderUsers();renderOverview();}
+
+// ── DESIGNS ───────────────────────────────────────────────
+function renderDesigns(){
+  const ds=KC.getDesigns();
+  document.getElementById('d-count').textContent=ds.length;
+  document.getElementById('designs-grid').innerHTML=ds.length?ds.map(d=>`
+    <div class="dg-item">
+      <img src="${d.url}" alt="${d.name}" onerror="this.src='images/logo.png'">
+      <div class="dg-info">
+        <span class="dg-name">${d.name}</span>
+        <button class="dg-del" onclick="KC.removeDesign('${d.id}');renderDesigns()">✕</button>
+      </div>
+    </div>`)
+    .join(''):'<p style="color:var(--muted);font-size:.82rem">No custom designs added yet.</p>';
+}
+function addDesign(){
+  const name=document.getElementById('d-name').value.trim();
+  const url=document.getElementById('d-url').value.trim();
+  const cat=document.getElementById('d-cat').value;
+  if(!name||!url){showMsg('d-msg','Name and URL required.','err');return;}
+  KC.addDesign({name,category:cat,url});
+  showMsg('d-msg','Design added to portfolio!','ok');
+  document.getElementById('d-name').value='';document.getElementById('d-url').value='';
+  renderDesigns();
+}
+
+// ── MEMBERS ───────────────────────────────────────────────
+function renderMembers(){
+  const members=KC.getMembers();
+  document.getElementById('member-grid').innerHTML=members.map(m=>`
+    <div class="member-card">
+      ${m.photo?`<img class="m-photo" src="${m.photo}" alt="${m.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:``}
+      <div class="m-placeholder" style="${m.photo?'display:none':''}">${(m.name||'?')[0]}</div>
+      <div class="m-name">${m.name}</div>
+      <div class="m-role">${m.role}</div>
+      <div class="skill-tags">
+        ${(Array.isArray(m.skills)?m.skills:(m.skills||'').split(',')).map(s=>`<span class="skill-tag">${s.trim()}</span>`).join('')}
+      </div>
+      <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
+        <button class="btn-main" style="font-size:.72rem;padding:5px 12px;" onclick="editMember('${m.id}')">Edit</button>
+        <button class="del-btn" onclick="KC.removeMember('${m.id}');renderMembers()">Remove</button>
+      </div>
+    </div>`).join('');
+}
+function addMember(){
+  const name=document.getElementById('m-name').value.trim();
+  const role=document.getElementById('m-role').value.trim();
+  const skills=document.getElementById('m-skills').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const photo=document.getElementById('m-photo').value.trim();
+  if(!name||!role){showMsg('m-msg','Name and Role required.','err');return;}
+  KC.addMember({name,role,skills,photo});
+  showMsg('m-msg','Member added!','ok');
+  ['m-name','m-role','m-skills','m-photo'].forEach(id=>document.getElementById(id).value='');
+  renderMembers();
+}
+function editMember(id){
+  const m=KC.getMembers().find(x=>x.id===id);
+  if(!m)return;
+  document.getElementById('em-id').value=m.id;
+  document.getElementById('em-name').value=m.name;
+  document.getElementById('em-role').value=m.role;
+  document.getElementById('em-skills').value=Array.isArray(m.skills)?m.skills.join(', '):m.skills;
+  document.getElementById('em-photo').value=m.photo||'';
+  document.getElementById('edit-member-card').style.display='block';
+  document.getElementById('edit-member-card').scrollIntoView({behavior:'smooth'});
+}
+function saveMemberEdit(){
+  const id=document.getElementById('em-id').value;
+  const name=document.getElementById('em-name').value.trim();
+  const role=document.getElementById('em-role').value.trim();
+  const skills=document.getElementById('em-skills').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const photo=document.getElementById('em-photo').value.trim();
+  if(!name||!role){showMsg('em-msg','Name and Role required.','err');return;}
+  KC.updateMember(id,{name,role,skills,photo});
+  showMsg('em-msg','Member updated!','ok');
+  document.getElementById('edit-member-card').style.display='none';
+  renderMembers();
+}
+
+// ── CONTACT ───────────────────────────────────────────────
+function loadContact(){
+  const c=KC.getContact();
+  document.getElementById('c-phone').value=c.phone||'';
+  document.getElementById('c-wa').value=c.whatsapp||'';
+  document.getElementById('c-fb').value=c.facebook||'';
+  document.getElementById('c-email').value=c.email||'';
+}
+function saveContact(){
+  KC.saveContact({phone:document.getElementById('c-phone').value.trim(),whatsapp:document.getElementById('c-wa').value.trim(),facebook:document.getElementById('c-fb').value.trim(),email:document.getElementById('c-email').value.trim()});
+  showMsg('c-msg','Contact info saved!','ok');
+}
+
+// ── CREDENTIALS ───────────────────────────────────────────
+function saveAdminCreds(){
+  const un=document.getElementById('a-un').value.trim();
+  const pw=document.getElementById('a-pw').value;
+  const cur=document.getElementById('a-cur').value;
+  const spec=KC.getSpecial();
+  if(cur!==spec.admin.password){showMsg('a-cred-msg','Current admin password incorrect.','err');return;}
+  const patch={};
+  if(un)patch.username=un;
+  if(pw){if(pw.length<6){showMsg('a-cred-msg','Password min 6 characters.','err');return;}patch.password=pw;}
+  if(!Object.keys(patch).length){showMsg('a-cred-msg','Nothing to update.','err');return;}
+  KC.updateSpecial('admin',patch);
+  KC.setSession({...session,...patch});
+  showMsg('a-cred-msg','Admin credentials updated!','ok');
+  document.getElementById('a-cur').value='';document.getElementById('a-pw').value='';
+}
+function saveDesignerCreds(){
+  const un=document.getElementById('da-un').value.trim();
+  const pw=document.getElementById('da-pw').value;
+  const confirm=document.getElementById('da-confirm').value;
+  const spec=KC.getSpecial();
+  if(confirm!==spec.admin.password){showMsg('da-cred-msg','Admin password incorrect.','err');return;}
+  const patch={};
+  if(un)patch.username=un;
+  if(pw){if(pw.length<6){showMsg('da-cred-msg','Password min 6 characters.','err');return;}patch.password=pw;}
+  if(!Object.keys(patch).length){showMsg('da-cred-msg','Nothing to update.','err');return;}
+  KC.updateSpecial('designer',patch);
+  showMsg('da-cred-msg','Designer credentials updated!','ok');
+  document.getElementById('da-confirm').value='';document.getElementById('da-pw').value='';
+}
+
+function showMsg(id,text,type){
+  const el=document.getElementById(id);
+  el.textContent=text;el.className='msg-inline show '+(type==='ok'?'ok':'err');
+  setTimeout(()=>el.className='msg-inline',3500);
+}
+
+// ── CLIENTS ──────────────────────────────────────────────────────────────
+let clientFileData = null;
+
+function handleClientFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    clientFileData = e.target.result; // base64 data URL
+    document.getElementById('cl-logo').value = ''; // clear URL field
+    // Show preview
+    const prev = document.getElementById('cl-preview');
+    const prevImg = document.getElementById('cl-preview-img');
+    const prevName = document.getElementById('cl-preview-name');
+    prev.style.display = 'flex';
+    prevImg.src = clientFileData;
+    prevName.textContent = file.name;
+  };
+  reader.readAsDataURL(file);
+}
+
+function addClient() {
+  const name = document.getElementById('cl-name').value.trim();
+  const urlInput = document.getElementById('cl-logo').value.trim();
+  if (!name) { showMsg('cl-msg', 'Company name is required.', 'err'); return; }
+  // Priority: uploaded file > URL input
+  const logo = clientFileData || urlInput || '';
+  KC.addClient({ name, logo });
+  showMsg('cl-msg', '"' + name + '" added!', 'ok');
+  // Reset
+  document.getElementById('cl-name').value = '';
+  document.getElementById('cl-logo').value = '';
+  document.getElementById('cl-file').value = '';
+  clientFileData = null;
+  document.getElementById('cl-preview').style.display = 'none';
+  renderClients();
+  // Notify homepage marquee if open in same tab (edge case)
+  window.dispatchEvent(new Event('kc_clients_updated'));
+}
+
+function toggleClientName(val) {
+  KC.setClientsShowName(val);
+  // Live preview feedback
+  showMsg('cl-msg', val ? 'Company names will show below logos.' : 'Company names hidden — logos only.', 'ok');
+  window.dispatchEvent(new Event('kc_clients_updated'));
+}
+
+function renderClients() {
+  // Sync toggle state
+  const toggle = document.getElementById('cl-showname-toggle');
+  if (toggle) toggle.checked = KC.getClientsShowName();
+  const clients = KC.getClients();
+  const grid = document.getElementById('clients-grid');
+  const empty = document.getElementById('cl-empty');
+  const count = document.getElementById('cl-count');
+  if (count) count.textContent = clients.length;
+  if (!clients.length) {
+    grid.innerHTML = '';
+    if (empty) empty.style.display = 'block';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+  grid.innerHTML = clients.map(c => {
+    const initials = (c.name || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+    return `<div style="background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:14px;text-align:center;box-shadow:var(--shadow);position:relative;">
+      <div style="width:70px;height:50px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;overflow:hidden;border-radius:8px;background:var(--bg);">
+        ${c.logo
+          ? `<img src="${c.logo}" alt="${c.name}" style="max-height:46px;max-width:66px;object-fit:contain;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+             <div style="display:none;width:46px;height:46px;border-radius:8px;background:linear-gradient(135deg,var(--blue),var(--red));align-items:center;justify-content:center;font-weight:800;font-size:.9rem;color:#fff;">${initials}</div>`
+          : `<div style="width:46px;height:46px;border-radius:8px;background:linear-gradient(135deg,var(--blue),var(--red));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.9rem;color:#fff;">${initials}</div>`
+        }
+      </div>
+      <div style="font-size:.78rem;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.name}</div>
+      <button onclick="KC.removeClient('${c.id}');renderClients();" style="position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;background:var(--red-light);border:none;color:var(--red);font-size:.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function logout(){KC.clearSession();window.location.href='login.html';}
+
+renderOverview();
+
+// Mobile sidebar toggle
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sb-overlay').classList.toggle('show');
+  document.getElementById('ham-btn').classList.toggle('open');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sb-overlay').classList.remove('show');
+  document.getElementById('ham-btn').classList.remove('open');
+}
+
+</script>
+</body>
+</html>
