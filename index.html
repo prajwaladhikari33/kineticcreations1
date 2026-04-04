@@ -343,10 +343,10 @@
   </div>
 </footer>
 
-<script src="db.js"></script>
+<script type="module" src="db.js"></script>
 <script src="script.js"></script>
 <script>
-(function() {
+(async function() {
   const session = KC.getSession();
   const area = document.getElementById('nav-user-area');
   const greeting = document.getElementById('hero-greeting');
@@ -376,7 +376,7 @@
   }
 
   // Load admin-added designs
-  const extraDesigns = KC.getDesigns();
+  const extraDesigns = await KC.getDesigns();
   if (extraDesigns.length) {
     const g = document.getElementById('extra-designs-grid');
     g.style.display = 'grid';
@@ -388,7 +388,8 @@
   }
 
   // Load team members (skip default owner id 'm1' — already shown statically)
-  const members = KC.getMembers().filter(m => m.id !== 'm1');
+  const allMembers = await KC.getMembers();
+  const members = allMembers.filter(m => m.id !== 'm1');
   if (members.length) {
     document.getElementById('team-members-section').style.display = 'block';
     document.getElementById('team-members-grid').innerHTML = members.map(m => {
@@ -410,17 +411,17 @@
 
 // ── Clients Marquee ─────────────────────────────────────────────────────
 (function(){
-  function renderMarquee() {
+  async function renderMarquee() {
     const inner = document.getElementById('marquee-inner');
     const section = document.getElementById('clients');
     if (!inner) return;
-    const clients = KC.getClients();
+    const clients = await KC.getClients();
     if (!clients.length) {
       if (section) section.style.display = 'none';
       return;
     }
     if (section) section.style.display = 'block';
-    const showName = KC.getClientsShowName();
+    const showName = await KC.getClientsShowName();
     // Duplicate list for seamless infinite scroll
     const all = [...clients, ...clients];
     inner.innerHTML = all.map(c => {
@@ -437,9 +438,9 @@
     const speed = Math.max(20, clients.length * 4);
     inner.style.animationDuration = speed + 's';
   }
-  renderMarquee();
+  await renderMarquee();
   // Re-render if admin adds a client in same session
-  window.addEventListener('kc_clients_updated', renderMarquee);
+  KC.onClients(async () => { await renderMarquee(); });
 })();
 
 // ── Lightbox Navigation ──────────────────────────────────────────────────

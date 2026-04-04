@@ -195,13 +195,19 @@ input[type="password"] { -webkit-appearance:none; }
   </div>
 </div>
 
-<script src="db.js"></script>
+<script type="module" src="db.js"></script>
 <script>
 const session = KC.getSession();
 if (!session || session.role === 'admin' || session.role === 'designer') window.location.href = 'login.html';
-let user = KC.getUserById(session.id) || session;
+let user = session; // will be refreshed async
 
-function init() {
+async function loadUser() {
+  const fresh = await KC.getUserById(session.id);
+  if (fresh) user = fresh;
+}
+
+async function init() {
+  await loadUser();
   const init = ((user.firstName||user.username||'U')[0]).toUpperCase();
   document.getElementById('avatar-card').innerHTML = `
     <div class="avatar">${init}</div>
@@ -218,19 +224,20 @@ function init() {
   loadOrders();
 }
 
-function saveProfile() {
+async function saveProfile() {
   const un=document.getElementById('p-un').value.trim();
   const em=document.getElementById('p-em').value.trim();
   if(!un||!em){showMsg('p-msg','Username and email required.','err');return;}
-  const others=KC.getUsers().filter(u=>u.id!==user.id);
+  const allUsers=await KC.getUsers();
+  const others=allUsers.filter(u=>u.id!==user.id);
   if(others.find(u=>u.username===un)){showMsg('p-msg','Username already taken.','err');return;}
   if(others.find(u=>u.email===em)){showMsg('p-msg','Email already in use.','err');return;}
-  KC.updateUser(user.id,{firstName:document.getElementById('p-fn').value.trim(),lastName:document.getElementById('p-ln').value.trim(),username:un,email:em,phone:document.getElementById('p-ph').value.trim()});
-  user=KC.getUserById(user.id); KC.setSession(user);
-  showMsg('p-msg','Profile updated!','ok'); init();
+  await KC.updateUser(user.id,{firstName:document.getElementById('p-fn').value.trim(),lastName:document.getElementById('p-ln').value.trim(),username:un,email:em,phone:document.getElementById('p-ph').value.trim()});
+  user=await KC.getUserById(user.id)||user; KC.setSession(user);
+  showMsg('p-msg','Profile updated!','ok'); await init();
 }
 
-function changePassword() {
+async function changePassword() {
   const cur=document.getElementById('pw-cur').value;
   const nw=document.getElementById('pw-new').value;
   const con=document.getElementById('pw-con').value;
@@ -243,8 +250,9 @@ function changePassword() {
   showMsg('pw-msg','Password changed!','ok');
 }
 
-function loadOrders() {
-  const orders=KC.getOrders().filter(o=>o.userId===user.id);
+async function loadOrders() {
+  const allOrders=await KC.getOrders();
+  const orders=allOrders.filter(o=>o.userId===user.id);
   const wrap=document.getElementById('my-orders');
   if(!orders.length){wrap.innerHTML='<p style="color:var(--muted);font-size:.85rem">No orders yet. <a href="order.html" style="color:var(--blue);font-weight:600">Place one →</a></p>';return;}
   const statusColor={Done:'#15803d',Cancelled:'#dc2626','In Progress':'#1a3cc8',Pending:'#a16207'};

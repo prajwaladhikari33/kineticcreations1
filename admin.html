@@ -404,10 +404,10 @@ body.auth-loading{visibility:hidden;}
   </div>
 </div>
 
-<script src="db.js"></script>
+<script type="module" src="db.js"></script>
 <script>
 // ── SECURITY GUARD ──────────────────────────────────────
-(function() {
+(async function() {
   const s = KC.getSession();
   if (!s || s.role !== 'admin') {
     document.getElementById('auth-block').classList.add('show');
@@ -434,12 +434,12 @@ function showPanel(name, btn) {
 }
 
 // ── OVERVIEW ─────────────────────────────────────────────
-function renderOverview() {
-  const users=KC.getUsers();
-  const unread=KC.getMessages().filter(m=>!m.read).length;
-  const members=KC.getMembers().length;
-  const designs=KC.getDesigns().length;
-  const clients=KC.getClients().length;
+async function renderOverview() {
+  const users=await KC.getUsers();
+  const unread=await KC.getMessages().filter(m=>!m.read).length;
+  const members=await KC.getMembers().length;
+  const designs=await KC.getDesigns().length;
+  const clients=await KC.getClients().length;
   document.getElementById('a-stats').innerHTML=`
     <div class="stat-card"><div class="stat-num" style="color:var(--purple)">${users.length}</div><div class="stat-lbl">Registered Users</div></div>
     <div class="stat-card"><div class="stat-num" style="color:var(--blue)">${members}</div><div class="stat-lbl">Team Members</div></div>
@@ -450,7 +450,7 @@ function renderOverview() {
 }
 
 // ── USERS ─────────────────────────────────────────────────
-function renderUsers(){ document.getElementById('users-wrap').innerHTML=buildUsersTable(KC.getUsers()); }
+async function renderUsers(){ document.getElementById('users-wrap').innerHTML=buildUsersTable(await KC.getUsers()); }
 function buildUsersTable(users) {
   if(!users.length) return '<p style="padding:18px;color:var(--muted);text-align:center;font-size:.85rem">No users yet.</p>';
   return `<table><thead><tr><th>Username</th><th>Full Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Joined</th><th>Actions</th></tr></thead><tbody>
@@ -464,36 +464,36 @@ function buildUsersTable(users) {
     </tr>`).join('')}
   </tbody></table>`;
 }
-function deleteUser(id){if(!confirm('Delete this user?'))return;KC.saveUsers(KC.getUsers().filter(u=>u.id!==id));renderUsers();renderOverview();}
+async function deleteUser(id){if(!confirm('Delete this user?'))return;await KC.saveUsers(await KC.getUsers().filter(u=>u.id!==id));renderUsers();renderOverview();}
 
 // ── DESIGNS ───────────────────────────────────────────────
-function renderDesigns(){
-  const ds=KC.getDesigns();
+async function renderDesigns(){
+  const ds=await KC.getDesigns();
   document.getElementById('d-count').textContent=ds.length;
   document.getElementById('designs-grid').innerHTML=ds.length?ds.map(d=>`
     <div class="dg-item">
       <img src="${d.url}" alt="${d.name}" onerror="this.src='images/logo.png'">
       <div class="dg-info">
         <span class="dg-name">${d.name}</span>
-        <button class="dg-del" onclick="KC.removeDesign('${d.id}');renderDesigns()">✕</button>
+        <button class="dg-del" onclick="await KC.removeDesign('${d.id}');renderDesigns()">✕</button>
       </div>
     </div>`)
     .join(''):'<p style="color:var(--muted);font-size:.82rem">No custom designs added yet.</p>';
 }
-function addDesign(){
+async function addDesign(){
   const name=document.getElementById('d-name').value.trim();
   const url=document.getElementById('d-url').value.trim();
   const cat=document.getElementById('d-cat').value;
   if(!name||!url){showMsg('d-msg','Name and URL required.','err');return;}
-  KC.addDesign({name,category:cat,url});
+  await KC.addDesign({name,category:cat,url});
   showMsg('d-msg','Design added to portfolio!','ok');
   document.getElementById('d-name').value='';document.getElementById('d-url').value='';
   renderDesigns();
 }
 
 // ── MEMBERS ───────────────────────────────────────────────
-function renderMembers(){
-  const members=KC.getMembers();
+async function renderMembers(){
+  const members=await KC.getMembers();
   document.getElementById('member-grid').innerHTML=members.map(m=>`
     <div class="member-card">
       ${m.photo?`<img class="m-photo" src="${m.photo}" alt="${m.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:``}
@@ -505,7 +505,7 @@ function renderMembers(){
       </div>
       <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
         <button class="btn-main" style="font-size:.72rem;padding:5px 12px;" onclick="editMember('${m.id}')">Edit</button>
-        <button class="del-btn" onclick="KC.removeMember('${m.id}');renderMembers()">Remove</button>
+        <button class="del-btn" onclick="await KC.removeMember('${m.id}');renderMembers()">Remove</button>
       </div>
     </div>`).join('');
 }
@@ -521,19 +521,19 @@ function handleMemberPhoto(input, targetId) {
   reader.readAsDataURL(file);
 }
 
-function addMember(){
+async function addMember(){
   const name=document.getElementById('m-name').value.trim();
   const role=document.getElementById('m-role').value.trim();
   const skills=document.getElementById('m-skills').value.split(',').map(s=>s.trim()).filter(Boolean);
   const photo=document.getElementById('m-photo').value.trim();
   if(!name||!role){showMsg('m-msg','Name and Role required.','err');return;}
-  KC.addMember({name,role,skills,photo});
+  await KC.addMember({name,role,skills,photo});
   showMsg('m-msg','Member added!','ok');
   ['m-name','m-role','m-skills','m-photo'].forEach(id=>document.getElementById(id).value='');
   renderMembers();
 }
-function editMember(id){
-  const m=KC.getMembers().find(x=>x.id===id);
+async function editMember(id){
+  const m=await KC.getMembers().find(x=>x.id===id);
   if(!m)return;
   document.getElementById('em-id').value=m.id;
   document.getElementById('em-name').value=m.name;
@@ -543,59 +543,59 @@ function editMember(id){
   document.getElementById('edit-member-card').style.display='block';
   document.getElementById('edit-member-card').scrollIntoView({behavior:'smooth'});
 }
-function saveMemberEdit(){
+async function saveMemberEdit(){
   const id=document.getElementById('em-id').value;
   const name=document.getElementById('em-name').value.trim();
   const role=document.getElementById('em-role').value.trim();
   const skills=document.getElementById('em-skills').value.split(',').map(s=>s.trim()).filter(Boolean);
   const photo=document.getElementById('em-photo').value.trim();
   if(!name||!role){showMsg('em-msg','Name and Role required.','err');return;}
-  KC.updateMember(id,{name,role,skills,photo});
+  await KC.updateMember(id,{name,role,skills,photo});
   showMsg('em-msg','Member updated!','ok');
   document.getElementById('edit-member-card').style.display='none';
   renderMembers();
 }
 
 // ── CONTACT ───────────────────────────────────────────────
-function loadContact(){
-  const c=KC.getContact();
+async function loadContact(){
+  const c=await KC.getContact();
   document.getElementById('c-phone').value=c.phone||'';
   document.getElementById('c-wa').value=c.whatsapp||'';
   document.getElementById('c-fb').value=c.facebook||'';
   document.getElementById('c-email').value=c.email||'';
 }
-function saveContact(){
-  KC.saveContact({phone:document.getElementById('c-phone').value.trim(),whatsapp:document.getElementById('c-wa').value.trim(),facebook:document.getElementById('c-fb').value.trim(),email:document.getElementById('c-email').value.trim()});
+async function saveContact(){
+  await KC.saveContact({phone:document.getElementById('c-phone').value.trim(),whatsapp:document.getElementById('c-wa').value.trim(),facebook:document.getElementById('c-fb').value.trim(),email:document.getElementById('c-email').value.trim()});
   showMsg('c-msg','Contact info saved!','ok');
 }
 
 // ── CREDENTIALS ───────────────────────────────────────────
-function saveAdminCreds(){
+async function saveAdminCreds(){
   const un=document.getElementById('a-un').value.trim();
   const pw=document.getElementById('a-pw').value;
   const cur=document.getElementById('a-cur').value;
-  const spec=KC.getSpecial();
+  const spec=await KC.getSpecial();
   if(cur!==spec.admin.password){showMsg('a-cred-msg','Current admin password incorrect.','err');return;}
   const patch={};
   if(un)patch.username=un;
   if(pw){if(pw.length<6){showMsg('a-cred-msg','Password min 6 characters.','err');return;}patch.password=pw;}
   if(!Object.keys(patch).length){showMsg('a-cred-msg','Nothing to update.','err');return;}
-  KC.updateSpecial('admin',patch);
+  await KC.updateSpecial('admin',patch);
   KC.setSession({...session,...patch});
   showMsg('a-cred-msg','Admin credentials updated!','ok');
   document.getElementById('a-cur').value='';document.getElementById('a-pw').value='';
 }
-function saveDesignerCreds(){
+async function saveDesignerCreds(){
   const un=document.getElementById('da-un').value.trim();
   const pw=document.getElementById('da-pw').value;
   const confirm=document.getElementById('da-confirm').value;
-  const spec=KC.getSpecial();
+  const spec=await KC.getSpecial();
   if(confirm!==spec.admin.password){showMsg('da-cred-msg','Admin password incorrect.','err');return;}
   const patch={};
   if(un)patch.username=un;
   if(pw){if(pw.length<6){showMsg('da-cred-msg','Password min 6 characters.','err');return;}patch.password=pw;}
   if(!Object.keys(patch).length){showMsg('da-cred-msg','Nothing to update.','err');return;}
-  KC.updateSpecial('designer',patch);
+  await KC.updateSpecial('designer',patch);
   showMsg('da-cred-msg','Designer credentials updated!','ok');
   document.getElementById('da-confirm').value='';document.getElementById('da-pw').value='';
 }
@@ -608,13 +608,13 @@ function showMsg(id,text,type){
 
 
 // ── EXPORT / IMPORT DATA ─────────────────────────────────────────────────
-function exportData() {
+async function exportData() {
   const data = {
-    kc_clients:      KC.getClients(),
-    kc_clients_showname: KC.getClientsShowName(),
-    kc_members:      KC.getMembers(),
-    kc_designs:      KC.getDesigns(),
-    kc_contact:      KC.getContact(),
+    kc_clients:      await KC.getClients(),
+    kc_clients_showname: await KC.getClientsShowName(),
+    kc_members:      await KC.getMembers(),
+    kc_designs:      await KC.getDesigns(),
+    kc_contact:      await KC.getContact(),
     exported_at:     new Date().toISOString(),
     version:         '1.0'
   };
@@ -628,7 +628,7 @@ function exportData() {
   showMsg('export-msg', 'Data exported! Share this file to other devices and import it there.', 'ok');
 }
 
-function importData(input) {
+async function importData(input) {
   const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
@@ -637,11 +637,11 @@ function importData(input) {
       const data = JSON.parse(e.target.result);
       if (!data.version) { showMsg('import-msg', 'Invalid file format.', 'err'); return; }
       if (!confirm('This will replace all current data on this device. Are you sure?')) return;
-      if (data.kc_clients)           KC.saveClients(data.kc_clients);
-      if (data.kc_clients_showname !== undefined) KC.setClientsShowName(data.kc_clients_showname);
-      if (data.kc_members)           KC.saveMembers(data.kc_members);
-      if (data.kc_designs)           KC.saveDesigns(data.kc_designs);
-      if (data.kc_contact)           KC.saveContact(data.kc_contact);
+      if (data.kc_clients)           await KC.saveClients(data.kc_clients);
+      if (data.kc_clients_showname !== undefined) await KC.setClientsShowName(data.kc_clients_showname);
+      if (data.kc_members)           await KC.saveMembers(data.kc_members);
+      if (data.kc_designs)           await KC.saveDesigns(data.kc_designs);
+      if (data.kc_contact)           await KC.saveContact(data.kc_contact);
       showMsg('import-msg', '✅ Data imported successfully! All clients, members and designs are now synced on this device.', 'ok');
       // Refresh current panels
       renderOverview();
@@ -674,13 +674,13 @@ function handleClientFile(input) {
   reader.readAsDataURL(file);
 }
 
-function addClient() {
+async function addClient() {
   const name = document.getElementById('cl-name').value.trim();
   const urlInput = document.getElementById('cl-logo').value.trim();
   if (!name) { showMsg('cl-msg', 'Company name is required.', 'err'); return; }
   // Priority: uploaded file > URL input
   const logo = clientFileData || urlInput || '';
-  KC.addClient({ name, logo });
+  await KC.addClient({ name, logo });
   showMsg('cl-msg', '"' + name + '" added!', 'ok');
   // Reset
   document.getElementById('cl-name').value = '';
@@ -693,18 +693,18 @@ function addClient() {
   window.dispatchEvent(new Event('kc_clients_updated'));
 }
 
-function toggleClientName(val) {
-  KC.setClientsShowName(val);
+async function toggleClientName(val) {
+  await KC.setClientsShowName(val);
   // Live preview feedback
   showMsg('cl-msg', val ? 'Company names will show below logos.' : 'Company names hidden — logos only.', 'ok');
   window.dispatchEvent(new Event('kc_clients_updated'));
 }
 
-function renderClients() {
+async function renderClients() {
   // Sync toggle state
   const toggle = document.getElementById('cl-showname-toggle');
-  if (toggle) toggle.checked = KC.getClientsShowName();
-  const clients = KC.getClients();
+  if (toggle) toggle.checked = await KC.getClientsShowName();
+  const clients = await KC.getClients();
   const grid = document.getElementById('clients-grid');
   const empty = document.getElementById('cl-empty');
   const count = document.getElementById('cl-count');
@@ -726,7 +726,7 @@ function renderClients() {
         }
       </div>
       <div style="font-size:.78rem;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.name}</div>
-      <button onclick="KC.removeClient('${c.id}');renderClients();" style="position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;background:var(--red-light);border:none;color:var(--red);font-size:.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>
+      <button onclick="await KC.removeClient('${c.id}');renderClients();" style="position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;background:var(--red-light);border:none;color:var(--red);font-size:.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>
     </div>`;
   }).join('');
 }

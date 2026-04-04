@@ -194,7 +194,7 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
-<script src="db.js"></script>
+<script type="module" src="db.js"></script>
 <script>
 // ══════════════════════════════════════════════════════
 //  EMAILJS CONFIGURATION
@@ -219,7 +219,7 @@ if (EMAIL_CONFIGURED) {
 }
 
 // ── Already logged in? Skip login page entirely ──────────
-(function(){
+(async function(){
   const s = KC.getSession();
   if (!s) return;
   if (s.role === 'admin')    { window.location.replace('admin.html');    return; }
@@ -254,18 +254,18 @@ function togglePw(inputId, btn) {
 }
 
 // ── Login ────────────────────────────────────────────────
-function doLogin() {
+async function doLogin() {
   const ident = document.getElementById('l-ident').value.trim();
   const pass  = document.getElementById('l-pass').value;
   if (!ident || !pass) { showMsg('l-msg','Please fill in all fields.','err'); return; }
-  const special = KC.checkSpecial(ident, pass);
+  const special = await KC.checkSpecial(ident, pass);
   if (special) {
     KC.setSession(special);
     showMsg('l-msg','Welcome, ' + special.name + '! Redirecting…','ok');
     setTimeout(() => { window.location.href = special.role==='admin' ? 'admin.html' : 'designer.html'; }, 800);
     return;
   }
-  const user = KC.findUser(ident, pass);
+  const user = await KC.findUser(ident, pass);
   if (!user) { showMsg('l-msg','Invalid credentials. Please try again.','err'); return; }
   KC.setSession(user);
   showMsg('l-msg','Welcome back, ' + user.username + '!','ok');
@@ -273,7 +273,7 @@ function doLogin() {
 }
 
 // ── Signup ───────────────────────────────────────────────
-function doSignup() {
+async function doSignup() {
   const fn=document.getElementById('s-fn').value.trim(), ln=document.getElementById('s-ln').value.trim();
   const un=document.getElementById('s-un').value.trim(), em=document.getElementById('s-em').value.trim();
   const ph=document.getElementById('s-ph').value.trim();
@@ -282,7 +282,7 @@ function doSignup() {
   if (pw.length<6)         { showMsg('s-msg','Password must be at least 6 characters.','err'); return; }
   if (pw!==cp)             { showMsg('s-msg','Passwords do not match.','err'); return; }
   if (!/\S+@\S+\.\S+/.test(em)) { showMsg('s-msg','Please enter a valid email.','err'); return; }
-  const r = KC.addUser({username:un,email:em,password:pw,firstName:fn,lastName:ln,phone:ph,role:'customer'});
+  const r = await KC.addUser({username:un,email:em,password:pw,firstName:fn,lastName:ln,phone:ph,role:'customer'});
   if (!r.ok) { showMsg('s-msg',r.msg,'err'); return; }
   KC.setSession(r.user);
   showMsg('s-msg','Account created! Redirecting…','ok');
@@ -306,7 +306,8 @@ async function fpSendOTP() {
   if (!email) { showMsg('fp-m1','Please enter your email.','err'); return; }
   if (!/\S+@\S+\.\S+/.test(email)) { showMsg('fp-m1','Please enter a valid email address.','err'); return; }
 
-  const user = KC.getUsers().find(u => u.email === email);
+  const users = await KC.getUsers();
+  const user = users.find(u => u.email === email);
   if (!user) { showMsg('fp-m1','No account found with that email address.','err'); return; }
 
   fpEmail = email;
@@ -391,13 +392,13 @@ function fpVerify() {
   document.getElementById('fp-s3').classList.add('active');
 }
 
-function fpReset() {
+async function fpReset() {
   const np=document.getElementById('fp-np').value, cp=document.getElementById('fp-cp').value;
   if (!np||np.length<6) { showMsg('fp-m3','Min 6 characters.','err'); return; }
   if (np!==cp)          { showMsg('fp-m3','Passwords do not match.','err'); return; }
-  const users=KC.getUsers(), i=users.findIndex(u=>u.email===fpEmail);
+  const users=await KC.getUsers(), i=users.findIndex(u=>u.email===fpEmail);
   if (i===-1) { showMsg('fp-m3','Something went wrong.','err'); return; }
-  users[i].password=np; KC.saveUsers(users);
+  await KC.updateUser(users[i].id, {password:np});
   showMsg('fp-m3','Password reset successfully! Redirecting…','ok');
   setTimeout(()=>{hideFP();switchTab('login');document.querySelectorAll('.fp-step').forEach(s=>s.classList.remove('active'));document.getElementById('fp-s1').classList.add('active');},1500);
 }

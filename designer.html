@@ -210,10 +210,10 @@ body.auth-loading{visibility:hidden;}
   </div>
 </div>
 
-<script src="db.js"></script>
+<script type="module" src="db.js"></script>
 <script>
 // ── SECURITY GUARD ──────────────────────────────────────
-(function() {
+(async function() {
   const s = KC.getSession();
   if (!s || s.role !== 'designer') {
     document.getElementById('auth-block').classList.add('show');
@@ -228,7 +228,7 @@ const session = KC.getSession();
 const DESIGNER_ID = 'designer';
 let activeConv = null, chatPoll = null;
 
-document.getElementById('designer-name').textContent = KC.getSpecial().designer.username;
+document.getElementById('designer-name').textContent = await KC.getSpecial().designer.username;
 
 function showPanel(name, btn) {
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
@@ -244,9 +244,9 @@ function showPanel(name, btn) {
 
 function badgeCls(s){ return s.replace(' ',''); }
 
-function renderOverview() {
-  const unread = KC.getMessages().filter(m=>m.to===DESIGNER_ID&&!m.read).length;
-  const users = KC.getUsers().length;
+async function renderOverview() {
+  const unread = await KC.getMessages().filter(m=>m.to===DESIGNER_ID&&!m.read).length;
+  const users = await KC.getUsers().length;
   document.getElementById('d-stats').innerHTML=`
     <div class="stat-card"><div class="stat-num" style="color:var(--blue)">${users}</div><div class="stat-lbl">Customers</div></div>
     <div class="stat-card"><div class="stat-num red">${unread}</div><div class="stat-lbl">Unread Msgs</div></div>`;
@@ -254,8 +254,8 @@ function renderOverview() {
 
 
 
-function renderConvList() {
-  const msgs = KC.getMessages();
+async function renderConvList() {
+  const msgs = await KC.getMessages();
   // Get all unique user IDs that have talked with designer (exclude designer-to-designer)
   const uids=[...new Set(msgs
     .filter(m => m.from===DESIGNER_ID || m.to===DESIGNER_ID)
@@ -266,10 +266,10 @@ function renderConvList() {
   const badge=document.getElementById('chat-badge');
   if(unread>0){badge.textContent=unread;badge.style.display='inline';}else badge.style.display='none';
   if(!uids.length){document.getElementById('conv-inner').innerHTML='<p style="padding:14px;color:var(--muted);font-size:.78rem">No customer conversations yet.</p>';return;}
-  const users=KC.getUsers();
+  const users=await KC.getUsers();
   document.getElementById('conv-inner').innerHTML=uids.map(uid=>{
     const u=users.find(x=>x.id===uid);
-    const c=KC.getConversation(uid,DESIGNER_ID);
+    const c=await KC.getConversation(uid,DESIGNER_ID);
     const last=c[c.length-1];
     const hasUnread=msgs.some(m=>m.from===uid&&m.to===DESIGNER_ID&&!m.read);
     const displayName = u ? u.username : uid;
@@ -288,11 +288,11 @@ function renderConvList() {
   }
 }
 
-function openConv(uid,name){
-  activeConv=uid; KC.markRead(uid,DESIGNER_ID); renderConvList(); loadPane(uid,name);
+async function openConv(uid,name){
+  activeConv=uid; await KC.markRead(uid,DESIGNER_ID); renderConvList(); loadPane(uid,name);
 }
 
-function loadPane(uid,name){
+async function loadPane(uid,name){
   const pane=document.getElementById('chat-pane');
   // If pane already showing this conversation, just refresh messages (don't rebuild whole pane)
   const existingTop = pane.querySelector('.chat-top');
@@ -311,8 +311,8 @@ function loadPane(uid,name){
   refreshMessages(uid, name);
 }
 
-function refreshMessages(uid, name){
-  const msgs=KC.getConversation(uid,DESIGNER_ID);
+async function refreshMessages(uid, name){
+  const msgs=await KC.getConversation(uid,DESIGNER_ID);
   const container=document.getElementById('d-msgs');
   if(!container) return;
   const atBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 60;
@@ -326,27 +326,27 @@ function refreshMessages(uid, name){
   if(atBottom) container.scrollTop=container.scrollHeight;
 }
 
-function dSend(uid,name){
+async function dSend(uid,name){
   const inp=document.getElementById('d-inp');
   const t=inp.value.trim();
   if(!t)return;
-  KC.sendMessage(DESIGNER_ID,uid,t);
+  await KC.sendMessage(DESIGNER_ID,uid,t);
   inp.value='';
   refreshMessages(uid, name||uid);
   renderConvList();
 }
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
-function startPoll(){
+async function startPoll(){
   if(chatPoll)return;
   chatPoll=setInterval(()=>{
     renderConvList();
     if(activeConv){
-      const u=KC.getUsers().find(x=>x.id===activeConv);
+      const u=await KC.getUsers().find(x=>x.id===activeConv);
       refreshMessages(activeConv, u?u.username:activeConv);
     }
   },2000);
 }
-function stopPoll(){clearInterval(chatPoll);chatPoll=null;}
+function stopPoll(){ if(chatPoll && typeof chatPoll === "function") chatPoll(); chatPoll=null; }
 
 
 function togglePw(id,btn){const inp=document.getElementById(id);const show=inp.type==='password';inp.type=show?'text':'password';btn.querySelector('svg').innerHTML=show?'<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>'   :'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'}

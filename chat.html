@@ -83,13 +83,13 @@ a{text-decoration:none;color:inherit;}
 
 <div id="chat-body" style="flex:1;display:flex;flex-direction:column;overflow:hidden;"></div>
 
-<script src="db.js"></script>
+<script type="module" src="db.js"></script>
 <script>
 const session = KC.getSession();
 const DESIGNER_ID = 'designer';
 const POLL_INTERVAL = 2000;
 
-function renderChat() {
+async function renderChat() {
   const body = document.getElementById('chat-body');
 
   if (!session || session.role === 'admin' || session.role === 'designer') {
@@ -114,14 +114,15 @@ function renderChat() {
       </button>
     </div>`;
 
-  loadMessages();
-  setInterval(loadMessages, POLL_INTERVAL);
+  await loadMessages();
+  // Real-time updates
+  KC.onMessages(async () => { await loadMessages(); });
   autoResize();
 }
 
-function loadMessages() {
-  const msgs = KC.getConversation(session.id, DESIGNER_ID);
-  KC.markRead(DESIGNER_ID, session.id);
+async function loadMessages() {
+  const msgs = await KC.getConversation(session.id, DESIGNER_ID);
+  await KC.markRead(DESIGNER_ID, session.id);
   const container = document.getElementById('messages');
   if (!container) return;
   if (msgs.length === 0) {
@@ -147,11 +148,11 @@ function loadMessages() {
 
 function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
 
-function sendMsg() {
+async function sendMsg() {
   const inp = document.getElementById('msg-inp');
   const text = inp.value.trim();
   if (!text) return;
-  KC.sendMessage(session.id, DESIGNER_ID, text);
+  await KC.sendMessage(session.id, DESIGNER_ID, text);
   inp.value = '';
   inp.style.height = '';
   loadMessages();
