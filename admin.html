@@ -404,8 +404,8 @@ body.auth-loading{visibility:hidden;}
   </div>
 </div>
 
-<script type="module" src="db.js"></script>
-<script>
+<script type="module">
+import { KC } from "./db.js";
 // ── SECURITY GUARD ──────────────────────────────────────
 (async function() {
   const s = KC.getSession();
@@ -733,7 +733,7 @@ async function renderClients() {
 
 function logout(){KC.clearSession();window.location.href='login.html';}
 
-renderOverview();
+(async()=>{ await renderOverview(); })();
 
 // Mobile sidebar toggle
 function toggleSidebar(){
@@ -747,6 +747,32 @@ function closeSidebar(){
   document.getElementById('ham-btn').classList.remove('open');
 }
 
+
+// Expose functions to window for HTML onclick handlers
+window.showPanel = showPanel;
+window.renderOverview = renderOverview;
+window.renderUsers = renderUsers;
+window.deleteUser = deleteUser;
+window.renderDesigns = renderDesigns;
+window.addDesign = addDesign;
+window.renderMembers = renderMembers;
+window.addMember = addMember;
+window.editMember = editMember;
+window.saveMemberEdit = saveMemberEdit;
+window.handleMemberPhoto = handleMemberPhoto;
+window.loadContact = loadContact;
+window.saveContact = saveContact;
+window.renderClients = renderClients;
+window.addClient = addClient;
+window.toggleClientName = toggleClientName;
+window.handleClientFile = handleClientFile;
+window.exportData = exportData;
+window.importData = importData;
+window.saveAdminCreds = saveAdminCreds;
+window.saveDesignerCreds = saveDesignerCreds;
+window.toggleSidebar = toggleSidebar;
+window.closeSidebar = closeSidebar;
+window.logout = logout;
 </script>
 </body>
 </html>

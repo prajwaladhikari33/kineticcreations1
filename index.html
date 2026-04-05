@@ -343,9 +343,9 @@
   </div>
 </footer>
 
-<script type="module" src="db.js"></script>
 <script src="script.js"></script>
-<script>
+<script type="module">
+import { KC } from "./db.js";
 (async function() {
   const session = KC.getSession();
   const area = document.getElementById('nav-user-area');
@@ -363,7 +363,7 @@
     const name = session.username || session.name;
     area.innerHTML = `
       <a href="account.html" class="nav-user-name" title="My Account">👤 ${name}</a>
-      <button class="nav-logout-btn" onclick="KC.clearSession();location.reload()">Logout</button>
+      <button class="nav-logout-btn" onclick="window._kcLogout()">Logout</button>
     `;
     const ml = document.getElementById('mob-login-li');
     const ma = document.getElementById('mob-account-li');
@@ -491,6 +491,10 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowRight') lbNav(1);
   if (e.key === 'ArrowLeft')  lbNav(-1);
 });
+
+// Expose functions to window for HTML onclick handlers
+window.lbNav = lbNav;
+window._kcLogout = function() { KC.clearSession(); location.reload(); };
 </script>
 </body>
 </html>

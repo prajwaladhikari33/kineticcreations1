@@ -83,8 +83,8 @@ a{text-decoration:none;color:inherit;}
 
 <div id="chat-body" style="flex:1;display:flex;flex-direction:column;overflow:hidden;"></div>
 
-<script type="module" src="db.js"></script>
-<script>
+<script type="module">
+import { KC } from "./db.js";
 const session = KC.getSession();
 const DESIGNER_ID = 'designer';
 const POLL_INTERVAL = 2000;
@@ -172,7 +172,11 @@ function autoResize() {
   });
 }
 
-renderChat();
+(async()=>{ await renderChat(); })();
+
+// Expose functions to window for HTML onclick handlers
+window.sendMsg = sendMsg;
+window.handleKey = handleKey;
 </script>
 </body>
 </html>

@@ -194,8 +194,8 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
-<script type="module" src="db.js"></script>
-<script>
+<script type="module">
+import { KC } from "./db.js";
 // ══════════════════════════════════════════════════════
 //  EMAILJS CONFIGURATION
 //  Follow EMAILJS_SETUP.md to get your 3 keys
@@ -402,6 +402,19 @@ async function fpReset() {
   showMsg('fp-m3','Password reset successfully! Redirecting…','ok');
   setTimeout(()=>{hideFP();switchTab('login');document.querySelectorAll('.fp-step').forEach(s=>s.classList.remove('active'));document.getElementById('fp-s1').classList.add('active');},1500);
 }
+
+// Expose functions to window for HTML onclick handlers
+window.doLogin = doLogin;
+window.doSignup = doSignup;
+window.switchTab = switchTab;
+window.showFP = showFP;
+window.hideFP = hideFP;
+window.fpSendOTP = fpSendOTP;
+window.fpResend = fpResend;
+window.fpVerify = fpVerify;
+window.fpReset = fpReset;
+window.togglePw = togglePw;
+window.startResendTimer = startResendTimer;
 </script>
 </body>
 </html>

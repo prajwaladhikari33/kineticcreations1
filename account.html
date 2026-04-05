@@ -195,8 +195,8 @@ input[type="password"] { -webkit-appearance:none; }
   </div>
 </div>
 
-<script type="module" src="db.js"></script>
-<script>
+<script type="module">
+import { KC } from "./db.js";
 const session = KC.getSession();
 if (!session || session.role === 'admin' || session.role === 'designer') window.location.href = 'login.html';
 let user = session; // will be refreshed async
@@ -287,7 +287,15 @@ function closeMob(){
   document.getElementById('mob-nav').classList.remove('open');
 }
 
-init();
+(async()=>{ await init(); })();
+
+// Expose functions to window for HTML onclick handlers
+window.saveProfile = saveProfile;
+window.changePassword = changePassword;
+window.doLogout = doLogout;
+window.togglePw = togglePw;
+window.toggleMob = toggleMob;
+window.closeMob = closeMob;
 </script>
 </body>
 </html>
