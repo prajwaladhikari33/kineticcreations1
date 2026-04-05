@@ -344,8 +344,7 @@
 </footer>
 
 <script src="script.js"></script>
-<script type="module">
-import { KC } from "./db.js";
+<script>
 (async function() {
   const session = KC.getSession();
   const area = document.getElementById('nav-user-area');
@@ -363,7 +362,7 @@ import { KC } from "./db.js";
     const name = session.username || session.name;
     area.innerHTML = `
       <a href="account.html" class="nav-user-name" title="My Account">👤 ${name}</a>
-      <button class="nav-logout-btn" onclick="window._kcLogout()">Logout</button>
+      <button class="nav-logout-btn" onclick="KC.clearSession();location.reload()">Logout</button>
     `;
     const ml = document.getElementById('mob-login-li');
     const ma = document.getElementById('mob-account-li');
@@ -440,7 +439,7 @@ import { KC } from "./db.js";
   }
   await renderMarquee();
   // Re-render if admin adds a client in same session
-  KC.onClients(async () => { await renderMarquee(); });
+  KC.onClients(() => { renderMarquee(); });
 })();
 
 // ── Lightbox Navigation ──────────────────────────────────────────────────
@@ -492,9 +491,22 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowLeft')  lbNav(-1);
 });
 
-// Expose functions to window for HTML onclick handlers
-window.lbNav = lbNav;
-window._kcLogout = function() { KC.clearSession(); location.reload(); };
+</script>
+
+<script src="db.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+// Initialize Firebase
+firebase.initializeApp({
+  apiKey:            "AIzaSyAKPsAAmM2q9QwkpunpPCROxRJNm-w8aR8",
+  authDomain:        "kinetic-creations.firebaseapp.com",
+  projectId:         "kinetic-creations",
+  storageBucket:     "kinetic-creations.firebasestorage.app",
+  messagingSenderId: "71084967180",
+  appId:             "1:71084967180:web:0ecebe79097f1af0163529"
+});
+KC.init(firebase.firestore());
 </script>
 </body>
 </html>

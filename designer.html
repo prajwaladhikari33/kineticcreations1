@@ -210,8 +210,7 @@ body.auth-loading{visibility:hidden;}
   </div>
 </div>
 
-<script type="module">
-import { KC } from "./db.js";
+<script>
 // ── SECURITY GUARD ──────────────────────────────────────
 (async function() {
   const s = KC.getSession();
@@ -245,8 +244,8 @@ function showPanel(name, btn) {
 function badgeCls(s){ return s.replace(' ',''); }
 
 async function renderOverview() {
-  const unread = await KC.getMessages().filter(m=>m.to===DESIGNER_ID&&!m.read).length;
-  const users = await KC.getUsers().length;
+  const unread = const _msgs = await KC.getMessages(); _msgs.filter(m=>m.to===DESIGNER_ID&&!m.read).length;
+  const users = (await KC.getUsers()).length;
   document.getElementById('d-stats').innerHTML=`
     <div class="stat-card"><div class="stat-num" style="color:var(--blue)">${users}</div><div class="stat-lbl">Customers</div></div>
     <div class="stat-card"><div class="stat-num red">${unread}</div><div class="stat-lbl">Unread Msgs</div></div>`;
@@ -341,19 +340,19 @@ async function startPoll(){
   chatPoll=setInterval(()=>{
     renderConvList();
     if(activeConv){
-      const u=await KC.getUsers().find(x=>x.id===activeConv);
+      const _du=await KC.getUsers(); const u=_du.find(x=>x.id===activeConv);
       refreshMessages(activeConv, u?u.username:activeConv);
     }
   },2000);
 }
-function stopPoll(){ if(chatPoll && typeof chatPoll === "function") chatPoll(); chatPoll=null; }
+function stopPoll(){ if(typeof chatPoll==="function") chatPoll(); chatPoll=null; }
 
 
 function togglePw(id,btn){const inp=document.getElementById(id);const show=inp.type==='password';inp.type=show?'text':'password';btn.querySelector('svg').innerHTML=show?'<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>'   :'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'}
 
 function logout(){KC.clearSession();window.location.href='login.html';}
 
-(async()=>{ await renderOverview(); })();
+window.addEventListener("DOMContentLoaded", () => { renderOverview(); });
 
 // Mobile sidebar toggle
 function toggleSidebar(){
@@ -368,14 +367,22 @@ function closeSidebar(){
 }
 
 
-// Expose functions to window for HTML onclick handlers
-window.showPanel = showPanel;
-window.openConv = openConv;
-window.dSend = dSend;
-window.togglePw = togglePw;
-window.toggleSidebar = toggleSidebar;
-window.closeSidebar = closeSidebar;
-window.logout = logout;
+</script>
+
+<script src="db.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+// Initialize Firebase
+firebase.initializeApp({
+  apiKey:            "AIzaSyAKPsAAmM2q9QwkpunpPCROxRJNm-w8aR8",
+  authDomain:        "kinetic-creations.firebaseapp.com",
+  projectId:         "kinetic-creations",
+  storageBucket:     "kinetic-creations.firebasestorage.app",
+  messagingSenderId: "71084967180",
+  appId:             "1:71084967180:web:0ecebe79097f1af0163529"
+});
+KC.init(firebase.firestore());
 </script>
 </body>
 </html>

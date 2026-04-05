@@ -195,8 +195,7 @@ input[type="password"] { -webkit-appearance:none; }
   </div>
 </div>
 
-<script type="module">
-import { KC } from "./db.js";
+<script>
 const session = KC.getSession();
 if (!session || session.role === 'admin' || session.role === 'designer') window.location.href = 'login.html';
 let user = session; // will be refreshed async
@@ -287,15 +286,24 @@ function closeMob(){
   document.getElementById('mob-nav').classList.remove('open');
 }
 
-(async()=>{ await init(); })();
+window.addEventListener("DOMContentLoaded", () => { init(); });
 
-// Expose functions to window for HTML onclick handlers
-window.saveProfile = saveProfile;
-window.changePassword = changePassword;
-window.doLogout = doLogout;
-window.togglePw = togglePw;
-window.toggleMob = toggleMob;
-window.closeMob = closeMob;
+</script>
+
+<script src="db.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+// Initialize Firebase
+firebase.initializeApp({
+  apiKey:            "AIzaSyAKPsAAmM2q9QwkpunpPCROxRJNm-w8aR8",
+  authDomain:        "kinetic-creations.firebaseapp.com",
+  projectId:         "kinetic-creations",
+  storageBucket:     "kinetic-creations.firebasestorage.app",
+  messagingSenderId: "71084967180",
+  appId:             "1:71084967180:web:0ecebe79097f1af0163529"
+});
+KC.init(firebase.firestore());
 </script>
 </body>
 </html>

@@ -404,8 +404,7 @@ body.auth-loading{visibility:hidden;}
   </div>
 </div>
 
-<script type="module">
-import { KC } from "./db.js";
+<script>
 // ── SECURITY GUARD ──────────────────────────────────────
 (async function() {
   const s = KC.getSession();
@@ -436,10 +435,10 @@ function showPanel(name, btn) {
 // ── OVERVIEW ─────────────────────────────────────────────
 async function renderOverview() {
   const users=await KC.getUsers();
-  const unread=await KC.getMessages().filter(m=>!m.read).length;
-  const members=await KC.getMembers().length;
-  const designs=await KC.getDesigns().length;
-  const clients=await KC.getClients().length;
+  const unread=const _msgs = await KC.getMessages(); _msgs.filter(m=>!m.read).length;
+  const members=(await KC.getMembers()).length;
+  const designs=(await KC.getDesigns()).length;
+  const clients=(await KC.getClients()).length;
   document.getElementById('a-stats').innerHTML=`
     <div class="stat-card"><div class="stat-num" style="color:var(--purple)">${users.length}</div><div class="stat-lbl">Registered Users</div></div>
     <div class="stat-card"><div class="stat-num" style="color:var(--blue)">${members}</div><div class="stat-lbl">Team Members</div></div>
@@ -464,7 +463,7 @@ function buildUsersTable(users) {
     </tr>`).join('')}
   </tbody></table>`;
 }
-async function deleteUser(id){if(!confirm('Delete this user?'))return;await KC.saveUsers(await KC.getUsers().filter(u=>u.id!==id));renderUsers();renderOverview();}
+async function deleteUser(id){if(!confirm('Delete this user?'))return;await KC.saveUsers(const _users = await KC.getUsers(); _users.filter(u=>u.id!==id));renderUsers();renderOverview();}
 
 // ── DESIGNS ───────────────────────────────────────────────
 async function renderDesigns(){
@@ -475,7 +474,7 @@ async function renderDesigns(){
       <img src="${d.url}" alt="${d.name}" onerror="this.src='images/logo.png'">
       <div class="dg-info">
         <span class="dg-name">${d.name}</span>
-        <button class="dg-del" onclick="await KC.removeDesign('${d.id}');renderDesigns()">✕</button>
+        <button class="dg-del" onclick="KC.removeDesign('${d.id}').then(()=>renderDesigns()())">✕</button>
       </div>
     </div>`)
     .join(''):'<p style="color:var(--muted);font-size:.82rem">No custom designs added yet.</p>';
@@ -505,7 +504,7 @@ async function renderMembers(){
       </div>
       <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
         <button class="btn-main" style="font-size:.72rem;padding:5px 12px;" onclick="editMember('${m.id}')">Edit</button>
-        <button class="del-btn" onclick="await KC.removeMember('${m.id}');renderMembers()">Remove</button>
+        <button class="del-btn" onclick="KC.removeMember('${m.id}').then(()=>renderMembers()())">Remove</button>
       </div>
     </div>`).join('');
 }
@@ -533,7 +532,7 @@ async function addMember(){
   renderMembers();
 }
 async function editMember(id){
-  const m=await KC.getMembers().find(x=>x.id===id);
+  const _mems=await KC.getMembers(); const m=_mems.find(x=>x.id===id);
   if(!m)return;
   document.getElementById('em-id').value=m.id;
   document.getElementById('em-name').value=m.name;
@@ -690,14 +689,14 @@ async function addClient() {
   document.getElementById('cl-preview').style.display = 'none';
   renderClients();
   // Notify homepage marquee if open in same tab (edge case)
-  window.dispatchEvent(new Event('kc_clients_updated'));
+  renderClients();
 }
 
 async function toggleClientName(val) {
   await KC.setClientsShowName(val);
   // Live preview feedback
   showMsg('cl-msg', val ? 'Company names will show below logos.' : 'Company names hidden — logos only.', 'ok');
-  window.dispatchEvent(new Event('kc_clients_updated'));
+  renderClients();
 }
 
 async function renderClients() {
@@ -733,7 +732,7 @@ async function renderClients() {
 
 function logout(){KC.clearSession();window.location.href='login.html';}
 
-(async()=>{ await renderOverview(); })();
+window.addEventListener("DOMContentLoaded", () => { renderOverview(); });
 
 // Mobile sidebar toggle
 function toggleSidebar(){
@@ -748,31 +747,22 @@ function closeSidebar(){
 }
 
 
-// Expose functions to window for HTML onclick handlers
-window.showPanel = showPanel;
-window.renderOverview = renderOverview;
-window.renderUsers = renderUsers;
-window.deleteUser = deleteUser;
-window.renderDesigns = renderDesigns;
-window.addDesign = addDesign;
-window.renderMembers = renderMembers;
-window.addMember = addMember;
-window.editMember = editMember;
-window.saveMemberEdit = saveMemberEdit;
-window.handleMemberPhoto = handleMemberPhoto;
-window.loadContact = loadContact;
-window.saveContact = saveContact;
-window.renderClients = renderClients;
-window.addClient = addClient;
-window.toggleClientName = toggleClientName;
-window.handleClientFile = handleClientFile;
-window.exportData = exportData;
-window.importData = importData;
-window.saveAdminCreds = saveAdminCreds;
-window.saveDesignerCreds = saveDesignerCreds;
-window.toggleSidebar = toggleSidebar;
-window.closeSidebar = closeSidebar;
-window.logout = logout;
+</script>
+
+<script src="db.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+// Initialize Firebase
+firebase.initializeApp({
+  apiKey:            "AIzaSyAKPsAAmM2q9QwkpunpPCROxRJNm-w8aR8",
+  authDomain:        "kinetic-creations.firebaseapp.com",
+  projectId:         "kinetic-creations",
+  storageBucket:     "kinetic-creations.firebasestorage.app",
+  messagingSenderId: "71084967180",
+  appId:             "1:71084967180:web:0ecebe79097f1af0163529"
+});
+KC.init(firebase.firestore());
 </script>
 </body>
 </html>

@@ -83,8 +83,7 @@ a{text-decoration:none;color:inherit;}
 
 <div id="chat-body" style="flex:1;display:flex;flex-direction:column;overflow:hidden;"></div>
 
-<script type="module">
-import { KC } from "./db.js";
+<script>
 const session = KC.getSession();
 const DESIGNER_ID = 'designer';
 const POLL_INTERVAL = 2000;
@@ -116,7 +115,7 @@ async function renderChat() {
 
   await loadMessages();
   // Real-time updates
-  KC.onMessages(async () => { await loadMessages(); });
+  KC.onMessages(() => { loadMessages(); });
   autoResize();
 }
 
@@ -172,11 +171,24 @@ function autoResize() {
   });
 }
 
-(async()=>{ await renderChat(); })();
+window.addEventListener("DOMContentLoaded", () => { renderChat(); });
 
-// Expose functions to window for HTML onclick handlers
-window.sendMsg = sendMsg;
-window.handleKey = handleKey;
+</script>
+
+<script src="db.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+// Initialize Firebase
+firebase.initializeApp({
+  apiKey:            "AIzaSyAKPsAAmM2q9QwkpunpPCROxRJNm-w8aR8",
+  authDomain:        "kinetic-creations.firebaseapp.com",
+  projectId:         "kinetic-creations",
+  storageBucket:     "kinetic-creations.firebasestorage.app",
+  messagingSenderId: "71084967180",
+  appId:             "1:71084967180:web:0ecebe79097f1af0163529"
+});
+KC.init(firebase.firestore());
 </script>
 </body>
 </html>
